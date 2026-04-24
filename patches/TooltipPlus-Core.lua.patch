@@ -1,0 +1,33 @@
+diff --git a/TooltipPlus/Core.lua b/TooltipPlus/Core.lua
+index 17e7f3c..2fdc2a7 100644
+--- a/TooltipPlus/Core.lua
++++ b/TooltipPlus/Core.lua
+@@ -432,8 +432,9 @@ function TTP:SetupTooltips()
+         -- Process unit tooltips (type 2) - ONLY style tooltips showing units
+         if isUnit then
+             if self.GetUnit then
+-                local unit = select(2, self:GetUnit())
+-                if unit then
++                -- FIX: wrap GetUnit in pcall; internal UnitName can throw on tainted unit tokens
++                local okUnit, _, unit = pcall(self.GetUnit, self)
++                if okUnit and unit then
+                     -- Store info for UpdateUnitDisplay
+                     TTP:UpdateUnitDisplay(self)
+                 end
+@@ -544,8 +545,14 @@ function TTP:GetRoleIcon(unit)
+ end
+ 
+ function TTP:UpdateUnitDisplay(tip)
+-    -- Get unit from tooltip (ProcessInfo already validated this)
+-    local unit = tip.GetUnit and select(2, tip:GetUnit())
++    -- Get unit from tooltip. ProcessInfo validated the unit existed, but the
++    -- GetUnit call itself can still throw on tainted tokens (SetWorldCursor path),
++    -- so we pcall it defensively (same fix as in General.lua and elsewhere).
++    local unit
++    if tip.GetUnit then
++        local okUnit, _, resUnit = pcall(tip.GetUnit, tip)
++        if okUnit then unit = resUnit end
++    end
+     if not unit then
+         if tip.FactionIcon then
+             tip.FactionIcon:Hide()

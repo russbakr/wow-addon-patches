@@ -1,0 +1,37 @@
+diff --git a/TooltipPlus/General.lua b/TooltipPlus/General.lua
+index a773d14..298a55d 100644
+--- a/TooltipPlus/General.lua
++++ b/TooltipPlus/General.lua
+@@ -11,16 +11,27 @@ local function GetTooltipUnit()
+         return nil
+     end
+ 
+-    local unitName, unitId = GameTooltip:GetUnit()
++    -- FIX: GameTooltip:GetUnit() internally calls UnitName(unit). During
++    -- SetWorldCursor processing the unit token is a secret/tainted value and
++    -- UnitName throws. Wrap in pcall so we don't spam errors on every mouseover.
++    local ok, unitName, unitId = pcall(GameTooltip.GetUnit, GameTooltip)
++    if not ok then
++        -- Fall back to mouseover which is a safe, unprotected unit token
++        local okMo, existsMo = pcall(UnitExists, "mouseover")
++        if okMo and existsMo then
++            return "mouseover"
++        end
++        return nil
++    end
+ 
+     -- Validate that we have a unit and that it exists
+     if unitId then
+-        local ok, exists = pcall(UnitExists, unitId)
+-        if ok and exists then
++        local okId, exists = pcall(UnitExists, unitId)
++        if okId and exists then
+             return unitId
+         else
+-            ok, exists = pcall(UnitExists, "mouseover")
+-            if ok and exists then
++            local okMo, existsMo = pcall(UnitExists, "mouseover")
++            if okMo and existsMo then
+                 return "mouseover"
+             end
+         end
