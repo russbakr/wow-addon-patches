@@ -5,18 +5,7 @@ Kept here so they survive CurseForge updates and can be shared / reapplied easil
 
 ## Patches
 
-### 1. BlizzMove — `SetScale` retaint guard
-**Addon:** https://www.curseforge.com/wow/addons/blizzmove
-**Status:** Upstreamed as **[Kiatra/BlizzMove#182](https://github.com/Kiatra/BlizzMove/pull/182)**.
-**What it fixes:**
-- `Blizzard_UIWidgetTemplateTextWithState.lua:35: attempt to perform arithmetic on local 'textHeight' (a secret number value tainted by 'BlizzMove')` — ~14,000/session on affected characters
-- `Blizzard_SharedXML/LayoutFrame.lua:491: attempt to compare a secret number value (tainted by 'BlizzMove')`
-
-**How:** Guard `frame:SetScale(newScale)` in `SetFrameScale` so it only fires when the scale is actually changing. The addon was calling `SetScale` on every `OnShow`, re-tainting the value each time, even when restoring an already-correct scale. See the PR body for the full write-up.
-
-Patch file: [`patches/BlizzMove.lua.patch`](patches/BlizzMove.lua.patch)
-
-### 2. TooltipPlus — unguarded `:GetUnit()` calls
+### TooltipPlus — unguarded `:GetUnit()` calls
 **Addon:** https://www.curseforge.com/wow/addons/tooltipplus
 **Status:** No public git repo exists. Posted in the CurseForge comments; applied locally.
 **What it fixes:**
@@ -28,28 +17,38 @@ Patch files:
 - [`patches/TooltipPlus-General.lua.patch`](patches/TooltipPlus-General.lua.patch)
 - [`patches/TooltipPlus-Core.lua.patch`](patches/TooltipPlus-Core.lua.patch)
 
+## Failed attempts (kept for the lesson)
+
+### BlizzMove — `SetScale` retaint guard ❌ *theory was wrong*
+
+Originally I theorised that `BlizzMove`'s `SetScale` calls were tainting the frame scale value, which then propagated into Blizzard's widget layout math when hovering map POIs. Submitted as [Kiatra/BlizzMove#182](https://github.com/Kiatra/BlizzMove/pull/182), which was **closed by Numynum (collaborator)** with this correction:
+
+> *"taint does not propagate through scale values, they cannot be tainted"*
+
+So that whole approach was misguided. Whatever produces the BlizzMove-attributed taint errors in BugSack comes from a different mechanism — not from `SetScale`. The patch and PR are kept linked above as documentation of the (failed) attempt; do not apply.
+
 ## Applying the patches
 
 ### On a fresh install or after a CurseForge update
 
 ```powershell
-# From the folder containing this repo:
-.\apply-patches.ps1
+powershell -ExecutionPolicy Bypass -File .\apply-patches.ps1
 ```
 
 The script finds your retail WoW install, applies each patch to the relevant addon file, and reports what changed. Safe to re-run — it detects if a patch is already applied and skips.
 
 ### Manually
 
-Each `.patch` file is a standard unified diff. Apply with `git apply` from inside the corresponding addon folder:
+Each `.patch` file is a standard unified diff. Apply with `git apply` from inside the AddOns folder:
 ```powershell
-cd "C:\Program Files (x86)\World of Warcraft\_retail_\Interface\AddOns\BlizzMove"
-git apply "<path-to-this-repo>\patches\BlizzMove.lua.patch"
+cd "C:\Program Files (x86)\World of Warcraft\_retail_\Interface\AddOns"
+git apply "<path-to-this-repo>\patches\TooltipPlus-General.lua.patch"
+git apply "<path-to-this-repo>\patches\TooltipPlus-Core.lua.patch"
 ```
 
 ## After a patched addon is updated upstream
 
-Once BlizzMove merges #182, you can stop applying its patch — just delete `patches/BlizzMove.lua.patch` and the matching block in `apply-patches.ps1`. Same for TooltipPlus if its author ever publishes a fix.
+If TooltipPlus's author ever publishes a fix, just delete the `patches/TooltipPlus-*.patch` files and stop running `apply-patches.ps1`.
 
 ## License
 
