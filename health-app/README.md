@@ -12,6 +12,26 @@ A personal health logbook that runs on your phone as an installable web app. Not
 
 The app starts with **example data** so you can see how it works. Tap "Clear it" on the banner to start with your own.
 
+## Your other apps (Sources tab)
+
+None of these apps offer a public API a web page can call without a server, so Vitalog imports the export each one already provides and merges everything into one daily record, tagged by source:
+
+| App | How the data gets in | What comes through |
+|---|---|---|
+| **Oura** | Oura on the Web → Trends → *Download Data* (CSV), or Membership Hub → *Export data* (ZIP/JSON) | Sleep, readiness and activity scores, HRV, resting heart rate, sleep time, breathing rate, temperature deviation, SpO₂, steps |
+| **MyFitnessPal** | myfitnesspal.com → Settings → Privacy & Security → *Download your data* (free, ZIP by email), or Premium *Export data* | Calories, protein, carbs, fat, fiber, sugar, sodium, exercise, weight |
+| **Hume** | Syncs to Apple Health; import the Apple Health export. Or tap *Log body composition* | Weight, body fat, muscle mass, visceral fat |
+| **Apple Health** | Health app → profile → *Export All Health Data* → import `export.zip` | Everything above from any app that syncs to Health, each tagged with its source |
+| **myAir (ResMed)** | No export exists. Tap *Log last night* and type the score, hours, AHI and leak | myAir score, usage, AHI, mask leak |
+
+Manual entries always win over imported values for the same day. Each import shows which columns were read and which were ignored.
+
+## Guidance from Claude (Guide tab)
+
+When Vitalog is opened through its claude.ai artifact link, the Guide tab can ask Claude for **Today's guidance** (last night plus the past week) or a **Weekly review** (this week against the last four). Claude sees only the numbers in the app plus the "About me" note in Settings. Guidance is saved in the app. Outside claude.ai the tab offers a *Copy my summary* button to paste into any Claude chat.
+
+Opened through claude.ai, the data is also mirrored to the artifact's private storage so a phone and a computer share one logbook (imports are easier on a computer).
+
 ## Put it on your phone
 
 The app needs to be served over HTTPS to be installable and to work offline. The included GitHub Actions workflow publishes this folder to GitHub Pages.
