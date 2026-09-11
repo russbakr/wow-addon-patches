@@ -13,6 +13,10 @@ If your BugSack is full of:
 
 The Blizzard-side bug that lets these secret values leak into widget layout in the first place is reportedly fixed in WoW patch **12.0.5**, so this whole error family should self-resolve once that lands. Until then, the TooltipPlus patches below kill the spam.
 
+## Also in this repo: Vitalog (personal health app)
+
+`health-app/` holds a small installable web app for logging medications, vitals, sleep, mood and water on a phone. See [`health-app/README.md`](health-app/README.md) for how to put it on your phone.
+
 ## Patches
 
 ### TooltipPlus — unguarded `:GetUnit()` calls

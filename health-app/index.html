@@ -1,0 +1,1173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vitalog</title>
+<!--PWA-HEAD-START-->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Vitalog">
+<meta name="theme-color" content="#F3F6F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1512" media="(prefers-color-scheme: dark)">
+<!--PWA-HEAD-END-->
+</head>
+<body>
+<title>Vitalog</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F3F6F4; --surface:#FFFFFF; --surface-2:#E9EFEB; --surface-3:#DDE6E1;
+  --ink:#14211C; --ink-2:#4F5F58; --muted:#7E8B85; --line:#DCE4DF;
+  --accent:#0F6E5C; --accent-ink:#FFFFFF; --accent-soft:#D9EFE8; --accent-soft-2:#B9E0D4;
+  --good:#0ca30c; --good-ink:#006300; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --s1:#2a78d6; --s2:#eb6834;
+  --grid:#E3E9E5; --axis:#C3CCC6;
+  --shadow:0 10px 30px rgba(20,33,28,.12);
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0E1512; --surface:#17201B; --surface-2:#1F2A24; --surface-3:#28352E;
+    --ink:#EDF3EF; --ink-2:#B5C2BB; --muted:#7F8C86; --line:#2A362F;
+    --accent:#4FC3A8; --accent-ink:#06211A; --accent-soft:#173B32; --accent-soft-2:#1F5446;
+    --good:#0ca30c; --good-ink:#0ca30c;
+    --s1:#3987e5; --s2:#d95926;
+    --grid:#263129; --axis:#3A473F;
+    --shadow:0 10px 30px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0E1512; --surface:#17201B; --surface-2:#1F2A24; --surface-3:#28352E;
+  --ink:#EDF3EF; --ink-2:#B5C2BB; --muted:#7F8C86; --line:#2A362F;
+  --accent:#4FC3A8; --accent-ink:#06211A; --accent-soft:#173B32; --accent-soft-2:#1F5446;
+  --good:#0ca30c; --good-ink:#0ca30c;
+  --s1:#3987e5; --s2:#d95926;
+  --grid:#263129; --axis:#3A473F;
+  --shadow:0 10px 30px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:16px; line-height:1.45;
+  -webkit-text-size-adjust:100%;
+  -webkit-tap-highlight-color:transparent;
+  overscroll-behavior-y:none;
+}
+h1,h2,h3,.display{
+  font-family:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+  font-weight:700; letter-spacing:-.01em; text-wrap:balance; margin:0;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible,[tabindex]:focus-visible{
+  outline:2px solid var(--accent); outline-offset:2px;
+}
+a{color:var(--accent)}
+
+/* ---------- shell ---------- */
+.app{
+  max-width:560px; margin:0 auto; min-height:100%;
+  display:flex; flex-direction:column;
+}
+.top{
+  position:sticky; top:0; z-index:5;
+  background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  padding:calc(env(safe-area-inset-top) + 14px) 20px 10px;
+  display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
+}
+.top h1{font-size:26px;line-height:1.1;font-weight:800}
+.eyebrow{
+  font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-2); font-weight:600;
+}
+.iconbtn{
+  width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
+  background:var(--surface);border:1px solid var(--line);color:var(--ink-2);
+}
+.iconbtn:active{transform:scale(.96)}
+main{flex:1; padding:6px 20px calc(env(safe-area-inset-bottom) + 92px)}
+.tabs{
+  position:fixed; bottom:0; left:0; right:0; z-index:5;
+  margin:0 auto; max-width:560px;
+  display:grid; grid-template-columns:repeat(4,1fr);
+  background:color-mix(in srgb,var(--surface) 92%,transparent);
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);
+  padding:6px 8px calc(env(safe-area-inset-bottom) + 6px);
+}
+.tab{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:6px 4px;border-radius:12px;color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.02em;
+}
+.tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab[aria-selected="true"]{color:var(--accent);background:var(--accent-soft)}
+
+/* ---------- blocks ---------- */
+.block{margin-top:22px}
+.block-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
+.block-head h2{font-size:18px}
+.block-head .more{font-size:13px;font-weight:600;color:var(--accent)}
+.card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+}
+.pad{padding:14px 16px}
+.hint{font-size:13px;color:var(--ink-2)}
+.empty{
+  padding:18px 16px; border:1px dashed var(--axis); border-radius:var(--radius);
+  color:var(--ink-2); font-size:14px; text-align:center;
+}
+
+/* ---------- today tiles ---------- */
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.tile{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px 14px; display:flex;flex-direction:column;gap:4px; min-height:92px;
+  text-align:left;
+}
+.tile .lbl{font-size:12px;color:var(--ink-2);font-weight:500}
+.tile .val{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:26px;line-height:1.05;letter-spacing:-.02em}
+.tile .val small{font-size:13px;font-weight:600;color:var(--ink-2);letter-spacing:0;margin-left:3px}
+.tile .sub{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:auto}
+.tile .sub.up{color:var(--good-ink)} .tile .sub.down{color:var(--crit)}
+.tile.water{grid-column:1 / -1;flex-direction:row;align-items:center;gap:14px}
+.tile.water .val{font-size:22px}
+.meter{flex:1;height:10px;border-radius:5px;background:var(--accent-soft);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:5px;transition:width .3s}
+.meter.full i{background:var(--good)}
+.tile.water .plus{
+  width:44px;height:44px;border-radius:12px;background:var(--accent);color:var(--accent-ink);
+  font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:22px;display:grid;place-items:center;flex:none;
+}
+.pill{
+  display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;letter-spacing:.02em;
+  padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);
+}
+.pill i{width:7px;height:7px;border-radius:50%;background:var(--muted);display:inline-block}
+.pill.good{background:color-mix(in srgb,var(--good) 14%,var(--surface));color:var(--good-ink)} .pill.good i{background:var(--good)}
+.pill.warn{background:color-mix(in srgb,var(--warn) 20%,var(--surface));color:var(--ink)} .pill.warn i{background:var(--warn)}
+.pill.serious{background:color-mix(in srgb,var(--serious) 18%,var(--surface));color:var(--ink)} .pill.serious i{background:var(--serious)}
+.pill.crit{background:color-mix(in srgb,var(--crit) 14%,var(--surface));color:var(--crit)} .pill.crit i{background:var(--crit)}
+
+/* ---------- quick log ---------- */
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.qbtn{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:10px 4px 8px;border-radius:12px;background:var(--surface);border:1px solid var(--line);
+  font-size:11px;font-weight:600;color:var(--ink-2);
+}
+.qbtn:active{transform:scale(.97)}
+.mono{
+  width:36px;height:36px;border-radius:10px;display:grid;place-items:center;
+  font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:13px;letter-spacing:-.02em;
+  background:var(--accent-soft);color:var(--accent);
+}
+:root[data-theme="dark"] .mono, :root:not([data-theme="light"]) .mono{color:var(--accent)}
+.mono.sm{width:30px;height:30px;font-size:11px;border-radius:8px}
+
+/* ---------- meds ---------- */
+.medlist{display:flex;flex-direction:column;gap:8px}
+.dose{
+  display:flex;align-items:center;gap:12px;padding:10px 12px 10px 14px;
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  text-align:left;width:100%;
+}
+.dose .chk{
+  width:26px;height:26px;border-radius:50%;border:2px solid var(--axis);flex:none;
+  display:grid;place-items:center;color:var(--accent-ink);
+}
+.dose .chk svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.dose.taken .chk{background:var(--accent);border-color:var(--accent)}
+.dose.taken .chk svg{opacity:1}
+.dose.taken .name{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--axis)}
+.dose .txt{flex:1;min-width:0}
+.dose .name{font-weight:600;font-size:15px}
+.dose .meta{font-size:12px;color:var(--muted)}
+.dose .when{font-size:13px;font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.dose.due .when{color:var(--crit)}
+.medrow{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.medrow:last-child{border-bottom:0}
+.medrow .txt{flex:1;min-width:0}
+.medrow .name{font-weight:600}
+.medrow .meta{font-size:13px;color:var(--ink-2)}
+.medrow .times{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.medrow .times span{font-size:12px;font-variant-numeric:tabular-nums;background:var(--surface-2);padding:1px 7px;border-radius:6px;color:var(--ink-2)}
+.medrow.paused .name{color:var(--muted)}
+.linkbtn{font-size:13px;font-weight:600;color:var(--accent);padding:6px 8px;border-radius:8px}
+.linkbtn.danger{color:var(--crit)}
+
+/* ---------- history ---------- */
+.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin:0 -20px;padding-left:20px;padding-right:20px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.chip{
+  flex:none;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;
+  background:var(--surface);border:1px solid var(--line);color:var(--ink-2);
+}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.daygroup{margin-top:18px}
+.daygroup h3{font-size:13px;color:var(--ink-2);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;font-family:"IBM Plex Sans",sans-serif}
+.entry{
+  display:flex;align-items:center;gap:12px;padding:10px 12px;
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:6px;
+}
+.entry .txt{flex:1;min-width:0}
+.entry .main{font-weight:600;font-size:15px}
+.entry .main small{font-weight:500;color:var(--ink-2);font-size:13px}
+.entry .note{font-size:13px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere}
+.entry .time{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.entry .del{color:var(--muted);width:32px;height:32px;border-radius:8px;display:grid;place-items:center}
+.entry .del svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.entry .del:hover{color:var(--crit);background:var(--surface-2)}
+
+/* ---------- charts ---------- */
+.chart-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 14px 8px;margin-bottom:12px}
+.chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
+.chart-head h3{font-size:15px}
+.chart-head .now{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em;line-height:1.1;text-align:right}
+.chart-head .now small{font-size:12px;font-weight:600;color:var(--ink-2);letter-spacing:0}
+.chart-head .delta{font-size:12px;color:var(--muted);text-align:right}
+.chart-head .delta.up{color:var(--good-ink)} .chart-head .delta.down{color:var(--crit)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--ink-2);margin:2px 0 4px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:2px;border-radius:1px;display:inline-block}
+.legend i.rect{width:10px;height:10px;border-radius:2px}
+.chart{position:relative}
+.chart svg{width:100%;height:auto;display:block;touch-action:pan-y}
+.chart .grid{stroke:var(--grid);stroke-width:1}
+.chart .axis{stroke:var(--axis);stroke-width:1}
+.chart text{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:10px;fill:var(--muted);font-variant-numeric:tabular-nums}
+.chart .endlbl{fill:var(--ink);font-weight:600;font-size:11px}
+.chart .xh{stroke:var(--ink-2);stroke-width:1;opacity:0}
+.chart .xh.on{opacity:.7}
+.chart .ring{stroke:var(--surface);stroke-width:2}
+.chart .band{fill:var(--good);opacity:.06}
+.tip{
+  position:absolute;top:4px;left:0;pointer-events:none;opacity:0;transition:opacity .12s;
+  background:var(--ink);color:var(--bg);border-radius:8px;padding:6px 9px;font-size:12px;
+  min-width:96px;box-shadow:var(--shadow);z-index:2;
+}
+.tip.on{opacity:1}
+.tip .d{color:color-mix(in srgb,var(--bg) 70%,transparent);margin-bottom:2px;font-size:11px}
+.tip .r{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tip .r i{width:10px;height:2px;display:inline-block;border-radius:1px}
+.tip .r b{font-weight:600}
+.tip .r span{opacity:.75}
+details.tbl{margin-top:6px}
+details.tbl summary{font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;padding:4px 0}
+details.tbl table{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px;font-variant-numeric:tabular-nums}
+details.tbl td,details.tbl th{padding:4px 6px;border-bottom:1px solid var(--line);text-align:right}
+details.tbl td:first-child,details.tbl th:first-child{text-align:left}
+details.tbl th{font-weight:600;color:var(--ink-2)}
+.range{display:flex;gap:6px;margin-bottom:14px}
+.range .chip{flex:1;text-align:center}
+
+/* ---------- sheet ---------- */
+.scrim{position:fixed;inset:0;background:rgba(10,20,15,.45);z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:21;margin:0 auto;max-width:560px;
+  background:var(--surface);border-radius:20px 20px 0 0;box-shadow:var(--shadow);
+  transform:translateY(105%);transition:transform .25s cubic-bezier(.2,.8,.2,1);
+  max-height:92vh;max-height:92dvh;display:flex;flex-direction:column;
+}
+.sheet.on{transform:none}
+.sheet .grab{width:38px;height:4px;border-radius:2px;background:var(--axis);margin:10px auto 0}
+.sheet header{display:flex;align-items:center;justify-content:space-between;padding:10px 20px 4px}
+.sheet header h2{font-size:20px}
+.sheet .body{overflow-y:auto;padding:6px 20px calc(env(safe-area-inset-bottom) + 20px)}
+.field{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+.field label{font-size:13px;font-weight:600;color:var(--ink-2)}
+.field input[type=text],.field input[type=number],.field input[type=time],.field input[type=datetime-local],.field select,.field textarea{
+  width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);
+  font-size:16px;min-height:46px;
+}
+.field textarea{min-height:72px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.bigin{display:flex;align-items:center;gap:10px}
+.bigin input{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:28px !important;letter-spacing:-.02em;text-align:center}
+.bigin .u{font-size:14px;color:var(--ink-2);font-weight:600;min-width:44px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{
+  padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);
+  font-size:14px;font-weight:500;color:var(--ink-2);min-height:40px;
+}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.seg.grow button{flex:1}
+.scale{display:flex;gap:6px}
+.scale button{
+  flex:1;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg);
+  font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:15px;color:var(--ink-2);
+}
+.scale button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.scale-lbls{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px}
+.timelist{display:flex;flex-direction:column;gap:8px}
+.timelist .t{display:flex;gap:8px;align-items:center}
+.timelist .t input{flex:1}
+.timelist .t button{color:var(--muted);width:40px;height:40px;border-radius:8px}
+.primary{
+  width:100%;margin-top:18px;padding:14px;border-radius:12px;background:var(--accent);color:var(--accent-ink);
+  font-weight:600;font-size:16px;font-family:"Bricolage Grotesque",sans-serif;
+}
+.primary:active{transform:scale(.99)}
+.secondary{width:100%;margin-top:10px;padding:12px;border-radius:12px;background:var(--surface-2);color:var(--ink);font-weight:600}
+.secondary.danger{color:var(--crit)}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.setrow:last-child{border-bottom:0}
+.setrow .l{font-weight:500}
+.setrow .l small{display:block;font-size:12px;color:var(--ink-2);font-weight:400}
+.setrow select,.setrow input[type=number]{padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);min-height:40px}
+.setrow input[type=number]{width:80px;text-align:center}
+.switch{width:48px;height:28px;border-radius:14px;background:var(--surface-3);position:relative;flex:none;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}
+.switch[aria-checked="true"]{background:var(--accent)}
+.switch[aria-checked="true"]::after{left:23px}
+.settings h3{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:22px 0 4px;font-family:"IBM Plex Sans",sans-serif;font-weight:600}
+.settings h3:first-child{margin-top:8px}
+
+/* ---------- banners & toast ---------- */
+.banner{
+  display:flex;align-items:center;gap:12px;padding:10px 12px 10px 14px;border-radius:12px;
+  background:var(--accent-soft);color:var(--ink);font-size:13px;margin-top:8px;
+}
+.banner b{font-weight:600}
+.banner .txt{flex:1}
+.banner button{font-weight:600;color:var(--accent);padding:6px 10px;border-radius:8px;background:var(--surface);flex:none;font-size:13px}
+.toast{
+  position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 84px);transform:translateX(-50%) translateY(10px);
+  background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;
+  opacity:0;transition:opacity .2s,transform .2s;z-index:30;pointer-events:none;white-space:nowrap;max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis;
+}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.streak{font-size:13px;color:var(--ink-2);margin-top:2px}
+.streak b{color:var(--ink)}
+@media (prefers-reduced-motion: reduce){
+  *{transition:none !important;animation:none !important}
+}
+@media (min-width:600px){
+  .tabs{border-left:1px solid var(--line);border-right:1px solid var(--line)}
+}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div>
+      <div class="eyebrow" id="hdrEyebrow">Today</div>
+      <h1 id="hdrTitle">Vitalog</h1>
+    </div>
+    <button class="iconbtn" id="btnSettings" aria-label="Settings" title="Settings">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </header>
+  <main id="view" aria-live="polite"></main>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" data-tab="today" aria-selected="true">
+      <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Today</button>
+    <button class="tab" role="tab" data-tab="trends" aria-selected="false">
+      <svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>Trends</button>
+    <button class="tab" role="tab" data-tab="history" aria-selected="false">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>History</button>
+    <button class="tab" role="tab" data-tab="meds" aria-selected="false">
+      <svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="4" transform="rotate(-45 12 12)"/><path d="M8.5 15.5l7-7"/></svg>Meds</button>
+  </nav>
+</div>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="grab"></div>
+  <header><h2 id="sheetTitle">Log</h2><button class="iconbtn" id="sheetClose" aria-label="Close">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+  <div class="body" id="sheetBody"></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* =====================================================================
+   Vitalog - a personal health logbook that lives on your phone.
+   All data is stored in this browser's localStorage. Nothing is sent
+   anywhere. Export from Settings to keep a backup.
+   ===================================================================== */
+(function(){
+'use strict';
+const KEY = 'vitalog.v1';
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad2 = n => String(n).padStart(2, '0');
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const round = (v, d) => { const m = Math.pow(10, d || 0); return Math.round(v * m) / m; };
+
+/* ---------- dates ---------- */
+function dayKey(ts){ const d = new Date(ts); return d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate()); }
+function today(){ return dayKey(Date.now()); }
+function dayStart(key){ const [y,m,d] = key.split('-').map(Number); return new Date(y, m-1, d).getTime(); }
+function addDays(key, n){ return dayKey(dayStart(key) + n * 864e5 + 36e5*2); } /* +2h guards DST */
+function fmtTime(ts){ const d = new Date(ts); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+function fmtDay(key){ const d = new Date(dayStart(key)); return d.getDate() + ' ' + MONTHS[d.getMonth()]; }
+function fmtDayLong(key){
+  const t = today();
+  if (key === t) return 'Today';
+  if (key === addDays(t, -1)) return 'Yesterday';
+  const d = new Date(dayStart(key));
+  return DAYS[d.getDay()].slice(0,3) + ' ' + d.getDate() + ' ' + MONTHS[d.getMonth()];
+}
+function toLocalInput(ts){ const d = new Date(ts); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+'T'+pad2(d.getHours())+':'+pad2(d.getMinutes()); }
+function fromLocalInput(s){ const t = new Date(s).getTime(); return isNaN(t) ? Date.now() : t; }
+
+/* ---------- state ---------- */
+const DEFAULTS = {
+  v: 1,
+  settings: { weightUnit:'kg', glucoseUnit:'mg/dL', tempUnit:'C', waterGoal: 2000, glass: 250, notify:false, demo:false },
+  meds: [],       /* {id,name,dose,times:['08:00'],active,notes,demo} */
+  doses: {},      /* dayKey -> { medId|time : ts } */
+  entries: []     /* {id,ts,type,...,note,demo} */
+};
+let S = load();
+let tab = 'today';
+let range = 30;
+let histFilter = 'all';
+
+function load(){
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const p = JSON.parse(raw);
+      if (p && p.v === 1) {
+        p.settings = Object.assign({}, DEFAULTS.settings, p.settings || {});
+        p.meds = p.meds || []; p.doses = p.doses || {}; p.entries = p.entries || [];
+        return p;
+      }
+    }
+  } catch (e) { /* storage unavailable or corrupt: start fresh in memory */ }
+  const fresh = JSON.parse(JSON.stringify(DEFAULTS));
+  seedDemo(fresh);
+  return fresh;
+}
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Could not save. Storage is full or blocked.'); }
+}
+
+/* ---------- units ---------- */
+const KG_LB = 2.2046226218;
+function wOut(kg){ return S.settings.weightUnit === 'lb' ? round(kg * KG_LB, 1) : round(kg, 1); }
+function wIn(v){ return S.settings.weightUnit === 'lb' ? v / KG_LB : v; }
+function gOut(mgdl){ return S.settings.glucoseUnit === 'mmol/L' ? round(mgdl / 18, 1) : Math.round(mgdl); }
+function gIn(v){ return S.settings.glucoseUnit === 'mmol/L' ? v * 18 : v; }
+function tOut(c){ return S.settings.tempUnit === 'F' ? round(c * 9/5 + 32, 1) : round(c, 1); }
+function tIn(v){ return S.settings.tempUnit === 'F' ? (v - 32) * 5/9 : v; }
+const wUnit = () => S.settings.weightUnit;
+const gUnit = () => S.settings.glucoseUnit;
+const tUnit = () => '°' + S.settings.tempUnit;
+
+/* ---------- entry types ---------- */
+const MOODS = ['Awful','Low','Okay','Good','Great'];
+const SYMPTOMS = ['Headache','Fatigue','Nausea','Dizziness','Anxiety','Cough','Fever','Sore throat','Back pain','Stomach ache','Poor sleep','Brain fog'];
+const EXERCISES = ['Walk','Run','Cycle','Strength','Yoga','Swim','Other'];
+const TYPES = {
+  water:    { code:'H₂O', label:'Water' },
+  weight:   { code:'Wt',  label:'Weight' },
+  bp:       { code:'BP',  label:'Blood pressure' },
+  hr:       { code:'HR',  label:'Heart rate' },
+  glucose:  { code:'Gl',  label:'Glucose' },
+  temp:     { code:'°',   label:'Temperature' },
+  sleep:    { code:'Zz',  label:'Sleep' },
+  exercise: { code:'Ex',  label:'Exercise' },
+  journal:  { code:'Me',  label:'How I feel' },
+};
+function summary(e){
+  switch (e.type) {
+    case 'water': return { main: e.ml + '<small> ml</small>' };
+    case 'weight': return { main: wOut(e.kg) + '<small> ' + wUnit() + '</small>' };
+    case 'bp': return { main: e.sys + '/' + e.dia + '<small> mmHg' + (e.pulse ? ' · ' + e.pulse + ' bpm' : '') + '</small>', pill: bpCat(e.sys, e.dia) };
+    case 'hr': return { main: e.bpm + '<small> bpm' + (e.ctx ? ' · ' + esc(e.ctx) : '') + '</small>' };
+    case 'glucose': return { main: gOut(e.mgdl) + '<small> ' + gUnit() + (e.ctx ? ' · ' + esc(e.ctx) : '') + '</small>' };
+    case 'temp': return { main: tOut(e.c) + '<small> ' + tUnit() + '</small>' };
+    case 'sleep': return { main: e.hours + '<small> h' + (e.quality ? ' · quality ' + e.quality + '/5' : '') + '</small>' };
+    case 'exercise': return { main: esc(e.kind) + ' ' + e.minutes + '<small> min' + (e.intensity ? ' · ' + esc(e.intensity) : '') + '</small>' };
+    case 'journal': {
+      const bits = [];
+      if (e.mood) bits.push('Mood ' + MOODS[e.mood-1]);
+      if (e.energy) bits.push('energy ' + e.energy + '/5');
+      if (e.pain != null && e.pain > 0) bits.push('pain ' + e.pain + '/10');
+      const sym = (e.symptoms || []).map(esc).join(', ');
+      return { main: esc(bits.join(' · ') || 'Check-in'), sub: sym };
+    }
+  }
+  return { main: e.type };
+}
+function bpCat(sys, dia){
+  if (sys > 180 || dia > 120) return { cls:'crit', txt:'Crisis - seek care' };
+  if (sys >= 140 || dia >= 90) return { cls:'serious', txt:'High, stage 2' };
+  if (sys >= 130 || dia >= 80) return { cls:'warn', txt:'High, stage 1' };
+  if (sys >= 120) return { cls:'warn', txt:'Elevated' };
+  return { cls:'good', txt:'Normal' };
+}
+
+/* ---------- queries ---------- */
+const sorted = () => S.entries.slice().sort((a,b) => a.ts - b.ts);
+function ofType(t){ return sorted().filter(e => e.type === t); }
+function latest(t){ const a = ofType(t); return a.length ? a[a.length-1] : null; }
+function onDay(key){ return sorted().filter(e => dayKey(e.ts) === key); }
+function waterToday(){ return onDay(today()).filter(e => e.type === 'water').reduce((s,e) => s + e.ml, 0); }
+function streak(){
+  let n = 0, k = today();
+  const days = new Set(S.entries.map(e => dayKey(e.ts)));
+  Object.keys(S.doses).forEach(d => { if (Object.keys(S.doses[d]).length) days.add(d); });
+  if (!days.has(k)) k = addDays(k, -1);
+  while (days.has(k)) { n++; k = addDays(k, -1); }
+  return n;
+}
+/* per-day aggregation for charts: mode = 'last' | 'sum' | 'avg' */
+function daily(type, field, mode, days){
+  const out = new Map();
+  const from = addDays(today(), -(days-1));
+  ofType(type).forEach(e => {
+    const k = dayKey(e.ts);
+    if (k < from) return;
+    const v = typeof field === 'function' ? field(e) : e[field];
+    if (v == null || isNaN(v)) return;
+    if (!out.has(k)) out.set(k, { sum:0, n:0, last:v });
+    const o = out.get(k); o.sum += v; o.n++; o.last = v;
+  });
+  const res = new Map();
+  out.forEach((o,k) => res.set(k, mode === 'sum' ? o.sum : mode === 'avg' ? o.sum / o.n : o.last));
+  return res;
+}
+
+/* ---------- rendering ---------- */
+function render(){
+  const main = $('#view');
+  const st = main.scrollTop;
+  $$('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+  const d = new Date();
+  $('#hdrEyebrow').textContent = DAYS[d.getDay()];
+  $('#hdrTitle').textContent = d.getDate() + ' ' + MONTHS[d.getMonth()];
+  main.innerHTML = ({ today: viewToday, trends: viewTrends, history: viewHistory, meds: viewMeds })[tab]();
+  bindView(main);
+  main.scrollTop = st;
+}
+function demoBanner(){
+  if (!S.settings.demo) return '';
+  return '<div class="banner"><div class="txt"><b>Showing example data</b> so you can see how the app works. Clear it whenever you want to start with your own.</div><button data-act="clearDemo">Clear it</button></div>';
+}
+
+/* ----- Today ----- */
+function viewToday(){
+  const t = today();
+  const water = waterToday(), goal = S.settings.waterGoal;
+  const w = latest('weight'), bp = latest('bp'), hr = latest('hr'), sl = latest('sleep'), gl = latest('glucose');
+  const jToday = onDay(t).filter(e => e.type === 'journal').pop();
+  const sk = streak();
+
+  /* weight delta vs ~7 days ago */
+  let wDelta = '';
+  if (w) {
+    const ago = ofType('weight').filter(e => e.ts <= w.ts - 6*864e5).pop();
+    if (ago) {
+      const d = round(wOut(w.kg) - wOut(ago.kg), 1);
+      wDelta = '<div class="sub ' + (d < 0 ? 'up' : d > 0 ? 'down' : '') + '">' + (d > 0 ? '+' : '') + d + ' ' + wUnit() + ' vs 7 days ago</div>';
+    } else wDelta = '<div class="sub">' + fmtDayLong(dayKey(w.ts)) + '</div>';
+  }
+  let h = demoBanner();
+  h += '<div class="streak">' + (sk ? '<b>' + sk + '-day</b> logging streak' : 'Log something today to start a streak') + '</div>';
+
+  h += '<section class="block"><div class="tiles">';
+  h += '<div class="tile water"><div><div class="lbl">Water today</div><div class="val">' + water + '<small>/ ' + goal + ' ml</small></div></div>' +
+       '<div class="meter' + (water >= goal ? ' full' : '') + '"><i style="width:' + clamp(water/goal*100,0,100) + '%"></i></div>' +
+       '<button class="plus" data-act="water" aria-label="Add a glass of water">+</button></div>';
+  h += tile('Weight', w ? wOut(w.kg) + '<small>' + wUnit() + '</small>' : '—', wDelta || '<div class="sub">Not logged yet</div>', 'weight');
+  h += tile('Blood pressure', bp ? bp.sys + '/' + bp.dia : '—', bp ? pill(bpCat(bp.sys, bp.dia)) + '<div class="sub">' + fmtDayLong(dayKey(bp.ts)) + '</div>' : '<div class="sub">Not logged yet</div>', 'bp');
+  h += tile('Heart rate', hr ? hr.bpm + '<small>bpm</small>' : '—', hr ? '<div class="sub">' + fmtDayLong(dayKey(hr.ts)) + ' ' + fmtTime(hr.ts) + '</div>' : '<div class="sub">Not logged yet</div>', 'hr');
+  h += tile('Sleep', sl ? sl.hours + '<small>h</small>' : '—', sl ? '<div class="sub">' + fmtDayLong(dayKey(sl.ts)) + (sl.quality ? ' · quality ' + sl.quality + '/5' : '') + '</div>' : '<div class="sub">Not logged yet</div>', 'sleep');
+  if (gl) h += tile('Glucose', gOut(gl.mgdl) + '<small>' + gUnit() + '</small>', '<div class="sub">' + fmtDayLong(dayKey(gl.ts)) + ' ' + fmtTime(gl.ts) + '</div>', 'glucose');
+  h += tile('How I feel', jToday && jToday.mood ? MOODS[jToday.mood-1] : '—', jToday ? '<div class="sub">' + (jToday.pain ? 'Pain ' + jToday.pain + '/10' : 'Checked in ' + fmtTime(jToday.ts)) + '</div>' : '<div class="sub">Tap to check in</div>', 'journal');
+  h += '</div></section>';
+
+  /* meds */
+  h += '<section class="block"><div class="block-head"><h2>Medications</h2><button class="more" data-act="tab" data-tab="meds">Manage</button></div>';
+  const active = S.meds.filter(m => m.active !== false);
+  if (!active.length) {
+    h += '<div class="empty">No medications yet. <button class="linkbtn" data-act="addMed">Add one</button></div>';
+  } else {
+    const doses = [];
+    active.forEach(m => (m.times || []).forEach(tm => doses.push({ m, tm })));
+    doses.sort((a,b) => a.tm.localeCompare(b.tm));
+    const now = fmtTime(Date.now());
+    h += '<div class="medlist">';
+    doses.forEach(({ m, tm }) => {
+      const k = m.id + '|' + tm;
+      const taken = (S.doses[t] || {})[k];
+      const due = !taken && tm <= now;
+      h += '<button class="dose' + (taken ? ' taken' : '') + (due ? ' due' : '') + '" data-act="dose" data-key="' + esc(k) + '" aria-pressed="' + (!!taken) + '">' +
+        '<span class="chk"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span>' +
+        '<span class="txt"><div class="name">' + esc(m.name) + '</div><div class="meta">' + esc(m.dose || '') + (taken ? ' · taken ' + fmtTime(taken) : due ? ' · due' : '') + '</div></span>' +
+        '<span class="when">' + esc(tm) + '</span></button>';
+    });
+    h += '</div>';
+  }
+  h += '</section>';
+
+  /* quick log */
+  h += '<section class="block"><div class="block-head"><h2>Log something</h2></div><div class="quick">';
+  ['weight','bp','hr','glucose','sleep','exercise','temp','journal'].forEach(k => {
+    h += '<button class="qbtn" data-act="log" data-type="' + k + '"><span class="mono">' + esc(TYPES[k].code) + '</span>' + esc(TYPES[k].label) + '</button>';
+  });
+  h += '</div></section>';
+
+  /* today's entries */
+  const te = onDay(t).reverse();
+  h += '<section class="block"><div class="block-head"><h2>Today</h2>' + (te.length ? '<button class="more" data-act="tab" data-tab="history">All history</button>' : '') + '</div>';
+  h += te.length ? te.map(entryRow).join('') : '<div class="empty">Nothing logged today yet.</div>';
+  h += '</section>';
+  return h;
+}
+function tile(lbl, val, sub, type){
+  return '<button class="tile" data-act="log" data-type="' + type + '"><div class="lbl">' + lbl + '</div><div class="val">' + val + '</div>' + sub + '</button>';
+}
+function pill(c){ return '<span class="pill ' + c.cls + '"><i></i>' + esc(c.txt) + '</span>'; }
+function entryRow(e){
+  const s = summary(e);
+  return '<div class="entry"><span class="mono sm">' + esc(TYPES[e.type].code) + '</span><div class="txt"><div class="main">' + s.main + (s.pill ? ' ' + pill(s.pill) : '') + '</div>' +
+    (s.sub ? '<div class="note">' + s.sub + '</div>' : '') + (e.note ? '<div class="note">' + esc(e.note) + '</div>' : '') +
+    '<div class="time">' + esc(TYPES[e.type].label) + ' · ' + fmtTime(e.ts) + '</div></div>' +
+    '<button class="del" data-act="del" data-id="' + esc(e.id) + '" aria-label="Delete entry"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div>';
+}
+
+/* ----- History ----- */
+function viewHistory(){
+  let h = '<section class="block"><div class="filters">';
+  const opts = [['all','All']].concat(Object.keys(TYPES).map(k => [k, TYPES[k].label]));
+  opts.forEach(([k,l]) => { h += '<button class="chip" data-act="hfilter" data-f="' + k + '" aria-pressed="' + (histFilter === k) + '">' + esc(l) + '</button>'; });
+  h += '</div>';
+  const list = sorted().reverse().filter(e => histFilter === 'all' || e.type === histFilter).slice(0, 300);
+  if (!list.length) { h += '<div class="empty" style="margin-top:14px">No entries here yet.</div></section>'; return h; }
+  let cur = '';
+  list.forEach(e => {
+    const k = dayKey(e.ts);
+    if (k !== cur) { if (cur) h += '</div>'; cur = k; h += '<div class="daygroup"><h3>' + esc(fmtDayLong(k)) + '</h3>'; }
+    h += entryRow(e);
+  });
+  h += '</div></section>';
+  return h;
+}
+
+/* ----- Meds ----- */
+function viewMeds(){
+  let h = '<section class="block"><div class="block-head"><h2>Medications</h2><button class="more" data-act="addMed">Add</button></div>';
+  if (!S.meds.length) {
+    h += '<div class="empty">Add the medications or supplements you take and they show up on Today as a checklist, with the times you set.<br><br><button class="linkbtn" data-act="addMed">Add a medication</button></div>';
+  } else {
+    h += '<div class="card">';
+    S.meds.forEach(m => {
+      h += '<div class="medrow' + (m.active === false ? ' paused' : '') + '"><span class="mono sm">Rx</span><div class="txt"><div class="name">' + esc(m.name) + (m.active === false ? ' <span class="pill">paused</span>' : '') + '</div>' +
+        '<div class="meta">' + esc(m.dose || '') + (m.notes ? ' · ' + esc(m.notes) : '') + '</div>' +
+        '<div class="times">' + (m.times || []).map(t => '<span>' + esc(t) + '</span>').join('') + '</div></div>' +
+        '<button class="linkbtn" data-act="editMed" data-id="' + esc(m.id) + '">Edit</button></div>';
+    });
+    h += '</div>';
+  }
+  h += '<p class="hint" style="margin-top:14px">Reminders: turn on notifications in Settings. On Android they fire while Vitalog is open or installed to your home screen. iPhone only allows notifications for installed web apps on iOS 16.4 or later, and only while the app has been opened recently. The Today checklist always shows what is due, whatever the phone allows.</p>';
+  /* adherence last 7 days */
+  const active = S.meds.filter(m => m.active !== false);
+  if (active.length) {
+    let planned = 0, taken = 0;
+    for (let i = 0; i < 7; i++) {
+      const k = addDays(today(), -i);
+      active.forEach(m => (m.times || []).forEach(t => { planned++; if ((S.doses[k] || {})[m.id + '|' + t]) taken++; }));
+    }
+    const pct = planned ? Math.round(taken / planned * 100) : 0;
+    h += '<section class="block"><div class="block-head"><h2>Last 7 days</h2></div><div class="card pad"><div class="tile" style="border:0;padding:0;min-height:0"><div class="lbl">Doses taken</div><div class="val">' + pct + '<small>%</small></div><div class="sub">' + taken + ' of ' + planned + ' scheduled doses</div></div>' +
+      '<div class="meter" style="margin-top:10px"><i style="width:' + pct + '%"></i></div></div></section>';
+  }
+  h += '</section>';
+  return h;
+}
+
+/* ----- Trends ----- */
+function viewTrends(){
+  let h = demoBanner();
+  h += '<section class="block"><div class="range">' + [7,30,90].map(n => '<button class="chip" data-act="range" data-n="' + n + '" aria-pressed="' + (range === n) + '">' + n + ' days</button>').join('') + '</div>';
+  const charts = [];
+  const from = addDays(today(), -(range-1));
+  const has = t => ofType(t).some(e => dayKey(e.ts) >= from);
+
+  if (has('weight')) charts.push(chartCard({ id:'weight', title:'Weight', unit:wUnit(), kind:'line', dec:1,
+    series:[{ name:'Weight', color:'var(--s1)', data: daily('weight', e => wOut(e.kg), 'last', range) }] }));
+  if (has('bp')) charts.push(chartCard({ id:'bp', title:'Blood pressure', unit:'mmHg', kind:'line', dec:0, bands:[[90,120],[60,80]],
+    series:[{ name:'Systolic', color:'var(--s1)', data: daily('bp','sys','avg',range) }, { name:'Diastolic', color:'var(--s2)', data: daily('bp','dia','avg',range) }] }));
+  if (has('hr')) charts.push(chartCard({ id:'hr', title:'Heart rate', unit:'bpm', kind:'line', dec:0,
+    series:[{ name:'Heart rate', color:'var(--s1)', data: daily('hr','bpm','avg',range) }] }));
+  if (has('glucose')) charts.push(chartCard({ id:'glucose', title:'Glucose', unit:gUnit(), kind:'line', dec: gUnit() === 'mmol/L' ? 1 : 0,
+    series:[{ name:'Glucose', color:'var(--s1)', data: daily('glucose', e => gOut(e.mgdl), 'avg', range) }] }));
+  if (has('sleep')) charts.push(chartCard({ id:'sleep', title:'Sleep', unit:'h', kind:'bar', dec:1,
+    series:[{ name:'Sleep', color:'var(--s1)', data: daily('sleep','hours','sum',range) }] }));
+  if (has('journal')) charts.push(chartCard({ id:'mood', title:'Mood', unit:'', kind:'line', dec:0, yMin:1, yMax:5, fmt:v => MOODS[Math.round(v)-1] || v,
+    series:[{ name:'Mood', color:'var(--s1)', data: daily('journal','mood','avg',range) }] }));
+  if (ofType('journal').some(e => e.pain > 0 && dayKey(e.ts) >= from)) charts.push(chartCard({ id:'pain', title:'Pain', unit:'/10', kind:'bar', dec:0, yMax:10,
+    series:[{ name:'Pain', color:'var(--s1)', data: daily('journal','pain','avg',range) }] }));
+  if (has('water')) charts.push(chartCard({ id:'water', title:'Water', unit:'ml', kind:'bar', dec:0, goal:S.settings.waterGoal,
+    series:[{ name:'Water', color:'var(--s1)', data: daily('water','ml','sum',range) }] }));
+  if (has('exercise')) charts.push(chartCard({ id:'exercise', title:'Exercise', unit:'min', kind:'bar', dec:0,
+    series:[{ name:'Minutes', color:'var(--s1)', data: daily('exercise','minutes','sum',range) }] }));
+  if (has('temp')) charts.push(chartCard({ id:'temp', title:'Temperature', unit:tUnit(), kind:'line', dec:1,
+    series:[{ name:'Temperature', color:'var(--s1)', data: daily('temp', e => tOut(e.c), 'avg', range) }] }));
+
+  h += charts.length ? charts.join('') : '<div class="empty">Nothing to chart in the last ' + range + ' days. Log a few days of weight, blood pressure, sleep or mood and trends appear here.</div>';
+  h += '</section>';
+  return h;
+}
+
+/* chart: one scale, hairline grid, thin marks, crosshair tooltip, table view */
+function chartCard(c){
+  const W = 360, H = 170, L = 34, R = 14, T = 12, B = 22;
+  const days = [];
+  for (let i = range-1; i >= 0; i--) days.push(addDays(today(), -i));
+  const n = days.length;
+  const x = i => L + (n === 1 ? (W-L-R)/2 : i * (W-L-R) / (n-1));
+  const slot = (W-L-R) / Math.max(n,1);
+  let vals = [];
+  c.series.forEach(s => s.data.forEach(v => vals.push(v)));
+  if (c.bands) c.bands.forEach(b => vals.push(b[0], b[1]));
+  if (c.goal) vals.push(c.goal);
+  let lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+  if (c.kind === 'bar') lo = 0;
+  if (c.yMin != null) lo = Math.min(lo, c.yMin);
+  if (c.yMax != null) hi = Math.max(hi, c.yMax);
+  const ticks = niceTicks(lo, hi, 4);
+  lo = ticks[0]; hi = ticks[ticks.length-1];
+  const y = v => T + (H-T-B) * (1 - (v - lo) / (hi - lo || 1));
+  const fmt = v => c.fmt ? c.fmt(v) : round(v, c.dec).toLocaleString();
+
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(c.title) + ' over the last ' + n + ' days">';
+  if (c.bands) c.bands.forEach(b => { svg += '<rect class="band" x="' + L + '" y="' + y(b[1]) + '" width="' + (W-L-R) + '" height="' + (y(b[0]) - y(b[1])) + '"/>'; });
+  ticks.forEach(t => { svg += '<line class="grid" x1="' + L + '" x2="' + (W-R) + '" y1="' + y(t) + '" y2="' + y(t) + '"/><text x="' + (L-6) + '" y="' + (y(t)+3.5) + '" text-anchor="end">' + esc(fmt(t)) + '</text>'; });
+  svg += '<line class="axis" x1="' + L + '" x2="' + (W-R) + '" y1="' + y(lo) + '" y2="' + y(lo) + '"/>';
+  if (c.goal) svg += '<line x1="' + L + '" x2="' + (W-R) + '" y1="' + y(c.goal) + '" y2="' + y(c.goal) + '" stroke="var(--good)" stroke-width="1" opacity=".7"/><text x="' + (W-R) + '" y="' + (y(c.goal)-3) + '" text-anchor="end">goal</text>';
+  /* x labels: first, middle, last (7 days: every day) */
+  const xl = n <= 7 ? days.map((d,i) => i) : [0, Math.floor((n-1)/2), n-1];
+  xl.forEach(i => { svg += '<text x="' + x(i) + '" y="' + (H-6) + '" text-anchor="' + (i === 0 ? 'start' : i === n-1 ? 'end' : 'middle') + '">' + esc(n <= 7 ? DAYS[new Date(dayStart(days[i])).getDay()].slice(0,3) : fmtDay(days[i])) + '</text>'; });
+
+  const bw = Math.min(24, Math.max(3, slot - 2));
+  c.series.forEach((s, si) => {
+    const pts = days.map((d,i) => s.data.has(d) ? { i, v: s.data.get(d) } : null).filter(Boolean);
+    if (!pts.length) return;
+    if (c.kind === 'bar') {
+      pts.forEach(p => {
+        const x0 = x(p.i) - bw/2, y0 = y(p.v), y1 = y(lo), r = Math.min(4, bw/2, (y1-y0));
+        svg += '<path fill="' + s.color + '" d="M' + x0 + ' ' + y1 + 'V' + (y0+r) + 'a' + r + ' ' + r + ' 0 0 1 ' + r + ' -' + r + 'h' + (bw-2*r) + 'a' + r + ' ' + r + ' 0 0 1 ' + r + ' ' + r + 'V' + y1 + 'z"/>';
+      });
+    } else {
+      const d = pts.map((p,k) => (k ? 'L' : 'M') + x(p.i) + ' ' + y(p.v)).join('');
+      if (c.series.length === 1) svg += '<path d="' + d + 'L' + x(pts[pts.length-1].i) + ' ' + y(lo) + 'L' + x(pts[0].i) + ' ' + y(lo) + 'z" fill="' + s.color + '" opacity=".1"/>';
+      svg += '<path d="' + d + '" fill="none" stroke="' + s.color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+      if (pts.length === 1 || n > 30) { /* sparse or dense: mark points lightly */
+        pts.forEach(p => { svg += '<circle cx="' + x(p.i) + '" cy="' + y(p.v) + '" r="2.5" fill="' + s.color + '"/>'; });
+      } else {
+        pts.forEach(p => { svg += '<circle class="ring" cx="' + x(p.i) + '" cy="' + y(p.v) + '" r="3" fill="' + s.color + '"/>'; });
+      }
+      const last = pts[pts.length-1];
+      svg += '<circle class="ring" cx="' + x(last.i) + '" cy="' + y(last.v) + '" r="4.5" fill="' + s.color + '"/>';
+      if (c.series.length === 1) {
+        const ly = y(last.v) < T + 16 ? y(last.v) + 15 : y(last.v) - 7; /* near the top edge: label sits under the point */
+        svg += '<text class="endlbl" x="' + Math.min(x(last.i) + 7, W-R-2) + '" y="' + ly + '" text-anchor="' + (x(last.i) > W - 60 ? 'end' : 'start') + '">' + esc(fmt(last.v)) + '</text>';
+      }
+    }
+  });
+  svg += '<line class="xh" x1="0" x2="0" y1="' + T + '" y2="' + y(lo) + '"/>';
+  svg += '<rect x="' + L + '" y="0" width="' + (W-L-R) + '" height="' + H + '" fill="transparent" class="hit"/>';
+  svg += '</svg>';
+
+  /* head: latest + delta vs first in range */
+  const s0 = c.series[0];
+  const keys = days.filter(d => s0.data.has(d));
+  let now = '—', delta = '';
+  if (keys.length) {
+    const lastV = s0.data.get(keys[keys.length-1]);
+    now = esc(fmt(lastV)) + (c.unit ? '<small> ' + esc(c.unit) + '</small>' : '');
+    if (c.series.length === 2) now = esc(fmt(lastV)) + '/' + esc(fmt(c.series[1].data.get(keys[keys.length-1]) || 0)) + '<small> ' + esc(c.unit) + '</small>';
+    if (keys.length > 1 && c.series.length === 1 && !c.fmt) {
+      const d = round(lastV - s0.data.get(keys[0]), c.dec);
+      const dir = c.id === 'weight' || c.id === 'pain' ? (d < 0 ? 'up' : d > 0 ? 'down' : '') : (d > 0 ? 'up' : d < 0 ? 'down' : '');
+      delta = '<div class="delta ' + dir + '">' + (d > 0 ? '+' : '') + d.toLocaleString() + ' since ' + esc(fmtDay(keys[0])) + '</div>';
+    }
+  }
+  let h = '<div class="chart-card" data-chart="' + esc(c.id) + '"><div class="chart-head"><div><h3>' + esc(c.title) + '</h3>' +
+    (c.series.length > 1 ? '<div class="legend">' + c.series.map(s => '<span><i style="background:' + s.color + '"></i>' + esc(s.name) + '</span>').join('') + '</div>' : '') +
+    '</div><div><div class="now">' + now + '</div>' + delta + '</div></div>';
+  h += '<div class="chart">' + svg + '<div class="tip" aria-hidden="true"></div></div>';
+  /* table view */
+  h += '<details class="tbl"><summary>Table view</summary><table><tr><th>Day</th>' + c.series.map(s => '<th>' + esc(s.name) + (c.unit ? ' (' + esc(c.unit) + ')' : '') + '</th>').join('') + '</tr>';
+  days.slice().reverse().forEach(d => {
+    if (!c.series.some(s => s.data.has(d))) return;
+    h += '<tr><td>' + esc(fmtDay(d)) + '</td>' + c.series.map(s => '<td>' + (s.data.has(d) ? esc(fmt(s.data.get(d))) : '·') + '</td>').join('') + '</tr>';
+  });
+  h += '</table></details></div>';
+  /* stash geometry for the hover layer */
+  chartMeta[c.id] = { days, x, L, R, W, series: c.series, fmt, unit: c.unit };
+  return h;
+}
+const chartMeta = {};
+function niceTicks(lo, hi, n){
+  if (!isFinite(lo) || !isFinite(hi)) { lo = 0; hi = 1; }
+  if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
+  const raw = (hi - lo) / n;
+  const p = Math.pow(10, Math.floor(Math.log10(raw)));
+  const f = raw / p;
+  const step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
+  const a = Math.floor(lo / step) * step, b = Math.ceil(hi / step) * step;
+  const out = [];
+  for (let v = a; v <= b + step/2; v += step) out.push(round(v, 6));
+  return out;
+}
+function bindCharts(root){
+  $$('.chart-card', root).forEach(card => {
+    const m = chartMeta[card.dataset.chart]; if (!m) return;
+    const svg = $('svg', card), tip = $('.tip', card), xh = $('.xh', card);
+    const move = ev => {
+      const r = svg.getBoundingClientRect();
+      const px = (ev.clientX - r.left) / r.width * m.W;
+      const n = m.days.length;
+      let i = n === 1 ? 0 : Math.round((px - m.L) / ((m.W - m.L - m.R) / (n - 1)));
+      i = clamp(i, 0, n-1);
+      const d = m.days[i];
+      const rows = m.series.filter(s => s.data.has(d));
+      if (!rows.length) { tip.classList.remove('on'); xh.classList.remove('on'); return; }
+      xh.setAttribute('x1', m.x(i)); xh.setAttribute('x2', m.x(i)); xh.classList.add('on');
+      tip.textContent = '';
+      const dd = document.createElement('div'); dd.className = 'd'; dd.textContent = fmtDayLong(d); tip.appendChild(dd);
+      rows.forEach(s => {
+        const row = document.createElement('div'); row.className = 'r';
+        const key = document.createElement('i'); key.style.background = s.color;
+        const b = document.createElement('b'); b.textContent = m.fmt(s.data.get(d)) + (m.unit ? ' ' + m.unit : '');
+        const sp = document.createElement('span'); sp.textContent = m.series.length > 1 ? s.name : '';
+        row.appendChild(key); row.appendChild(b); if (sp.textContent) row.appendChild(sp); tip.appendChild(row);
+      });
+      tip.classList.add('on');
+      const cx = m.x(i) / m.W * r.width;
+      const tw = tip.offsetWidth;
+      tip.style.left = clamp(cx - tw/2, 0, r.width - tw) + 'px';
+    };
+    svg.addEventListener('pointermove', move);
+    svg.addEventListener('pointerdown', move);
+    svg.addEventListener('pointerleave', () => { tip.classList.remove('on'); xh.classList.remove('on'); });
+  });
+}
+
+/* ---------- sheet (forms) ---------- */
+function openSheet(title, body, onOpen){
+  $('#sheetTitle').textContent = title;
+  $('#sheetBody').innerHTML = body;
+  $('#scrim').classList.add('on'); $('#sheet').classList.add('on');
+  if (onOpen) onOpen($('#sheetBody'));
+  const first = $('input:not([type=hidden]),select,textarea,button', $('#sheetBody'));
+  if (first && first.tagName !== 'BUTTON' && window.innerWidth > 600) first.focus();
+}
+function closeSheet(){ $('#scrim').classList.remove('on'); $('#sheet').classList.remove('on'); }
+$('#scrim').addEventListener('click', closeSheet);
+$('#sheetClose').addEventListener('click', closeSheet);
+
+function whenField(){ return '<div class="field"><label for="f_when">When</label><input type="datetime-local" id="f_when" value="' + toLocalInput(Date.now()) + '"></div>'; }
+function noteField(){ return '<div class="field"><label for="f_note">Note <span style="font-weight:400">(optional)</span></label><input type="text" id="f_note" placeholder="Anything worth remembering"></div>'; }
+function segField(id, label, opts, val){
+  return '<div class="field"><span class="label" style="font-size:13px;font-weight:600;color:var(--ink-2)">' + esc(label) + '</span><div class="seg grow" id="' + id + '" role="group" aria-label="' + esc(label) + '">' +
+    opts.map(o => '<button type="button" data-v="' + esc(o) + '" aria-pressed="' + (o === val) + '">' + esc(o) + '</button>').join('') + '</div></div>';
+}
+function scaleField(id, label, lo, hi, val, ends){
+  let b = '';
+  for (let i = lo; i <= hi; i++) b += '<button type="button" data-v="' + i + '" aria-pressed="' + (i === val) + '">' + i + '</button>';
+  return '<div class="field"><span style="font-size:13px;font-weight:600;color:var(--ink-2)">' + esc(label) + '</span><div class="scale" id="' + id + '" role="group" aria-label="' + esc(label) + '">' + b + '</div>' +
+    (ends ? '<div class="scale-lbls"><span>' + esc(ends[0]) + '</span><span>' + esc(ends[1]) + '</span></div>' : '') + '</div>';
+}
+function bindSeg(root){
+  $$('.seg,.scale', root).forEach(g => g.addEventListener('click', ev => {
+    const b = ev.target.closest('button'); if (!b) return;
+    const multi = g.dataset.multi === '1';
+    if (multi) b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));
+    else $$('button', g).forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  }));
+}
+const segVal = id => { const b = $('#' + id + ' [aria-pressed="true"]'); return b ? b.dataset.v : null; };
+const segVals = id => $$('#' + id + ' [aria-pressed="true"]').map(b => b.dataset.v);
+const num = id => { const v = parseFloat($('#' + id).value); return isNaN(v) ? null : v; };
+
+function logForm(type){
+  const T = TYPES[type];
+  let f = '';
+  switch (type) {
+    case 'water': f = '<div class="field"><label for="f_ml">Amount</label><div class="bigin"><input type="number" id="f_ml" inputmode="numeric" value="' + S.settings.glass + '" min="1" step="50"><span class="u">ml</span></div></div>' +
+      '<div class="field"><div class="seg grow"><button type="button" data-set="f_ml" data-v="250">Glass 250</button><button type="button" data-set="f_ml" data-v="500">Bottle 500</button><button type="button" data-set="f_ml" data-v="750">Large 750</button></div></div>'; break;
+    case 'weight': { const last = latest('weight'); f = '<div class="field"><label for="f_kg">Weight</label><div class="bigin"><input type="number" id="f_kg" inputmode="decimal" step="0.1" min="1" value="' + (last ? wOut(last.kg) : '') + '" placeholder="0.0"><span class="u">' + esc(wUnit()) + '</span></div></div>'; break; }
+    case 'bp': f = '<div class="row3"><div class="field"><label for="f_sys">Systolic</label><input type="number" id="f_sys" inputmode="numeric" placeholder="120" min="50" max="260"></div><div class="field"><label for="f_dia">Diastolic</label><input type="number" id="f_dia" inputmode="numeric" placeholder="80" min="30" max="160"></div><div class="field"><label for="f_pulse">Pulse</label><input type="number" id="f_pulse" inputmode="numeric" placeholder="70" min="20" max="250"></div></div>' +
+      '<p class="hint">Sit for 5 minutes first, arm at heart level, feet flat. Take two readings a minute apart and log the average.</p>'; break;
+    case 'hr': f = '<div class="field"><label for="f_bpm">Heart rate</label><div class="bigin"><input type="number" id="f_bpm" inputmode="numeric" placeholder="65" min="20" max="250"><span class="u">bpm</span></div></div>' + segField('f_ctx', 'Context', ['Resting','After activity','Other'], 'Resting'); break;
+    case 'glucose': f = '<div class="field"><label for="f_gl">Blood glucose</label><div class="bigin"><input type="number" id="f_gl" inputmode="decimal" step="' + (gUnit() === 'mmol/L' ? '0.1' : '1') + '" placeholder="' + (gUnit() === 'mmol/L' ? '5.5' : '95') + '"><span class="u">' + esc(gUnit()) + '</span></div></div>' + segField('f_ctx', 'When', ['Fasting','Before meal','After meal','Bedtime'], 'Fasting'); break;
+    case 'temp': f = '<div class="field"><label for="f_c">Temperature</label><div class="bigin"><input type="number" id="f_c" inputmode="decimal" step="0.1" placeholder="' + (S.settings.tempUnit === 'F' ? '98.6' : '36.6') + '"><span class="u">' + esc(tUnit()) + '</span></div></div>'; break;
+    case 'sleep': f = '<div class="field"><label for="f_h">Hours slept</label><div class="bigin"><input type="number" id="f_h" inputmode="decimal" step="0.25" min="0" max="24" placeholder="7.5"><span class="u">h</span></div></div>' + scaleField('f_q', 'Sleep quality', 1, 5, 3, ['Terrible','Refreshed']); break;
+    case 'exercise': f = segField('f_kind', 'Activity', EXERCISES, 'Walk') + '<div class="field"><label for="f_min">Minutes</label><div class="bigin"><input type="number" id="f_min" inputmode="numeric" min="1" max="600" placeholder="30"><span class="u">min</span></div></div>' + segField('f_int', 'Intensity', ['Light','Moderate','Hard'], 'Moderate'); break;
+    case 'journal': f = scaleField('f_mood', 'Mood', 1, 5, 3, ['Awful','Great']) + scaleField('f_energy', 'Energy', 1, 5, 3, ['Drained','Full of it']) + scaleField('f_pain', 'Pain', 0, 10, 0, ['None','Worst imaginable']) +
+      '<div class="field"><span style="font-size:13px;font-weight:600;color:var(--ink-2)">Symptoms</span><div class="seg" id="f_sym" data-multi="1" role="group" aria-label="Symptoms">' + SYMPTOMS.map(s => '<button type="button" data-v="' + esc(s) + '" aria-pressed="false">' + esc(s) + '</button>').join('') + '</div></div>' +
+      '<div class="field"><label for="f_note">Notes</label><textarea id="f_note" placeholder="What happened today, what you ate, how you slept, anything a doctor might ask about"></textarea></div>'; break;
+  }
+  if (type !== 'journal') f += noteField();
+  f += whenField();
+  f += '<button class="primary" id="f_save">Save ' + esc(T.label.toLowerCase()) + '</button>';
+  openSheet(T.label, f, root => {
+    bindSeg(root);
+    $$('[data-set]', root).forEach(b => b.addEventListener('click', () => { $('#' + b.dataset.set).value = b.dataset.v; }));
+    $('#f_save').addEventListener('click', () => {
+      const e = { id: uid(), type, ts: fromLocalInput($('#f_when').value), note: ($('#f_note') ? $('#f_note').value.trim() : '') };
+      const bad = m => { toast(m); };
+      switch (type) {
+        case 'water': e.ml = num('f_ml'); if (!e.ml || e.ml <= 0) return bad('Enter an amount in ml.'); e.ml = Math.round(e.ml); break;
+        case 'weight': { const v = num('f_kg'); if (!v || v <= 0) return bad('Enter your weight.'); e.kg = round(wIn(v), 2); break; }
+        case 'bp': e.sys = num('f_sys'); e.dia = num('f_dia'); e.pulse = num('f_pulse'); if (!e.sys || !e.dia) return bad('Enter both systolic and diastolic.'); if (e.dia >= e.sys) return bad('Diastolic should be lower than systolic.'); break;
+        case 'hr': e.bpm = num('f_bpm'); if (!e.bpm) return bad('Enter a heart rate.'); e.ctx = segVal('f_ctx'); break;
+        case 'glucose': { const v = num('f_gl'); if (!v) return bad('Enter a glucose reading.'); e.mgdl = round(gIn(v), 1); e.ctx = segVal('f_ctx'); break; }
+        case 'temp': { const v = num('f_c'); if (!v) return bad('Enter a temperature.'); e.c = round(tIn(v), 2); break; }
+        case 'sleep': e.hours = num('f_h'); if (e.hours == null || e.hours < 0) return bad('Enter hours slept.'); e.quality = +segVal('f_q'); break;
+        case 'exercise': e.kind = segVal('f_kind'); e.minutes = num('f_min'); if (!e.minutes) return bad('Enter how many minutes.'); e.intensity = segVal('f_int'); break;
+        case 'journal': e.mood = +segVal('f_mood'); e.energy = +segVal('f_energy'); e.pain = +segVal('f_pain'); e.symptoms = segVals('f_sym'); break;
+      }
+      S.entries.push(e); save(); closeSheet(); render();
+      toast(T.label + ' saved');
+    });
+  });
+}
+
+function medForm(id){
+  const m = id ? S.meds.find(x => x.id === id) : null;
+  const times = m ? m.times.slice() : ['08:00'];
+  let f = '<div class="field"><label for="m_name">Name</label><input type="text" id="m_name" placeholder="e.g. Metformin, Vitamin D" value="' + esc(m ? m.name : '') + '"></div>' +
+    '<div class="field"><label for="m_dose">Dose</label><input type="text" id="m_dose" placeholder="e.g. 500 mg, 1 tablet" value="' + esc(m ? m.dose : '') + '"></div>' +
+    '<div class="field"><span style="font-size:13px;font-weight:600;color:var(--ink-2)">Times each day</span><div class="timelist" id="m_times"></div><button type="button" class="linkbtn" id="m_addTime" style="align-self:flex-start">+ Add a time</button></div>' +
+    '<div class="field"><label for="m_notes">Notes</label><input type="text" id="m_notes" placeholder="With food, before bed…" value="' + esc(m ? m.notes || '' : '') + '"></div>';
+  if (m) f += '<div class="setrow" style="margin-top:14px"><div class="l">Active<small>Paused medications stay in the list but leave the Today checklist.</small></div><button class="switch" id="m_active" role="switch" aria-checked="' + (m.active !== false) + '"></button></div>';
+  f += '<button class="primary" id="m_save">' + (m ? 'Save changes' : 'Add medication') + '</button>';
+  if (m) f += '<button class="secondary danger" id="m_del">Delete this medication</button>';
+  openSheet(m ? 'Edit medication' : 'New medication', f, root => {
+    const list = $('#m_times');
+    const draw = () => {
+      list.innerHTML = times.map((t,i) => '<div class="t"><input type="time" value="' + esc(t) + '" data-i="' + i + '" aria-label="Time ' + (i+1) + '"><button type="button" data-rm="' + i + '" aria-label="Remove time"' + (times.length === 1 ? ' disabled style="opacity:.3"' : '') + '><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>').join('');
+    };
+    draw();
+    list.addEventListener('change', ev => { if (ev.target.dataset.i != null) times[+ev.target.dataset.i] = ev.target.value || '08:00'; });
+    list.addEventListener('click', ev => { const b = ev.target.closest('[data-rm]'); if (b && times.length > 1) { times.splice(+b.dataset.rm, 1); draw(); } });
+    $('#m_addTime').addEventListener('click', () => { times.push(times.length === 1 ? '20:00' : '12:00'); draw(); });
+    const sw = $('#m_active'); if (sw) sw.addEventListener('click', () => sw.setAttribute('aria-checked', String(sw.getAttribute('aria-checked') !== 'true')));
+    $('#m_save').addEventListener('click', () => {
+      const name = $('#m_name').value.trim(); if (!name) return toast('Give it a name.');
+      const rec = { id: m ? m.id : uid(), name, dose: $('#m_dose').value.trim(), times: times.filter(Boolean).sort(), notes: $('#m_notes').value.trim(), active: sw ? sw.getAttribute('aria-checked') === 'true' : true };
+      if (m) Object.assign(m, rec); else S.meds.push(rec);
+      save(); closeSheet(); render(); toast(m ? 'Saved' : name + ' added');
+    });
+    const del = $('#m_del'); if (del) del.addEventListener('click', () => {
+      if (!confirm('Delete ' + m.name + '? Past taken doses stay in your history.')) return;
+      S.meds = S.meds.filter(x => x.id !== m.id); save(); closeSheet(); render(); toast('Deleted');
+    });
+  });
+}
+
+/* ---------- settings ---------- */
+function settingsSheet(){
+  const s = S.settings;
+  const sel = (id, opts, val) => '<select id="' + id + '">' + opts.map(o => '<option' + (o === val ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select>';
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  let f = '<div class="settings">';
+  f += '<h3>Units</h3><div class="card" style="padding:0 14px">' +
+    '<div class="setrow"><div class="l">Weight</div>' + sel('s_w', ['kg','lb'], s.weightUnit) + '</div>' +
+    '<div class="setrow"><div class="l">Blood glucose</div>' + sel('s_g', ['mg/dL','mmol/L'], s.glucoseUnit) + '</div>' +
+    '<div class="setrow"><div class="l">Temperature</div>' + sel('s_t', ['C','F'], s.tempUnit) + '</div></div>';
+  f += '<h3>Goals</h3><div class="card" style="padding:0 14px">' +
+    '<div class="setrow"><div class="l">Daily water goal<small>ml per day</small></div><input type="number" id="s_goal" inputmode="numeric" step="100" min="200" value="' + s.waterGoal + '"></div>' +
+    '<div class="setrow"><div class="l">One tap of + adds<small>ml</small></div><input type="number" id="s_glass" inputmode="numeric" step="50" min="50" value="' + s.glass + '"></div></div>';
+  f += '<h3>Reminders</h3><div class="card" style="padding:0 14px">' +
+    '<div class="setrow"><div class="l">Medication notifications<small>' + (('Notification' in window) ? 'Fires at each scheduled time while the app is open or installed.' : 'This browser does not support notifications.') + '</small></div><button class="switch" id="s_notify" role="switch" aria-checked="' + (s.notify && ('Notification' in window) && Notification.permission === 'granted') + '"' + (('Notification' in window) ? '' : ' disabled') + '></button></div></div>';
+  f += '<h3>Install on your phone</h3><div class="card pad hint">';
+  if (standalone) f += 'Vitalog is installed. You are running it as an app.';
+  else if (deferredInstall) f += '<button class="primary" id="s_install" style="margin-top:0">Install Vitalog</button>';
+  else if (isIOS) f += 'In Safari, tap the <b>Share</b> button, then <b>Add to Home Screen</b>. Vitalog will open full-screen like a normal app and keep your data on this phone.';
+  else f += 'In Chrome, open the browser menu and choose <b>Add to Home screen</b> or <b>Install app</b>.';
+  f += '</div>';
+  f += '<h3>Your data</h3><div class="card pad hint" style="margin-bottom:10px">Everything lives only on this phone, in this browser. Nothing is uploaded. Clearing the browser\'s site data deletes it, so export a backup now and then.</div>' +
+    '<button class="secondary" id="s_export" style="margin-top:0">Export backup (JSON)</button>' +
+    '<button class="secondary" id="s_import">Import a backup</button><input type="file" id="s_file" accept="application/json,.json" hidden>' +
+    (s.demo ? '<button class="secondary" id="s_clearDemo">Clear example data</button>' : (S.entries.length === 0 && S.meds.length === 0 ? '<button class="secondary" id="s_loadDemo">Load example data</button>' : '')) +
+    '<button class="secondary danger" id="s_wipe">Delete everything</button>';
+  f += '<p class="hint" style="margin-top:18px">Vitalog is a personal logbook, not medical advice. Blood pressure categories follow the American Heart Association guide. If a reading worries you, talk to a clinician.</p>';
+  f += '</div>';
+  openSheet('Settings', f, root => {
+    const apply = () => { s.weightUnit = $('#s_w').value; s.glucoseUnit = $('#s_g').value; s.tempUnit = $('#s_t').value; s.waterGoal = Math.max(200, +$('#s_goal').value || 2000); s.glass = Math.max(50, +$('#s_glass').value || 250); save(); render(); };
+    ['s_w','s_g','s_t','s_goal','s_glass'].forEach(id => $('#' + id).addEventListener('change', apply));
+    const sw = $('#s_notify');
+    sw.addEventListener('click', async () => {
+      const on = sw.getAttribute('aria-checked') !== 'true';
+      if (on) {
+        let p = Notification.permission;
+        if (p !== 'granted') p = await Notification.requestPermission();
+        if (p !== 'granted') { toast('Notifications were not allowed by the phone.'); return; }
+      }
+      s.notify = on; sw.setAttribute('aria-checked', String(on)); save();
+      if (on) toast('Reminders on');
+    });
+    const inst = $('#s_install'); if (inst) inst.addEventListener('click', async () => { deferredInstall.prompt(); const r = await deferredInstall.userChoice; if (r.outcome === 'accepted') { deferredInstall = null; closeSheet(); toast('Installed'); } });
+    $('#s_export').addEventListener('click', exportData);
+    $('#s_import').addEventListener('click', () => $('#s_file').click());
+    $('#s_file').addEventListener('change', ev => { const f = ev.target.files[0]; if (f) importData(f); });
+    const cd = $('#s_clearDemo'); if (cd) cd.addEventListener('click', () => { clearDemo(); closeSheet(); });
+    const ld = $('#s_loadDemo'); if (ld) ld.addEventListener('click', () => { seedDemo(S); save(); closeSheet(); render(); toast('Example data loaded'); });
+    $('#s_wipe').addEventListener('click', () => {
+      if (!confirm('Delete all entries, medications and settings on this phone? This cannot be undone.')) return;
+      S = JSON.parse(JSON.stringify(DEFAULTS)); save(); closeSheet(); render(); toast('Everything deleted');
+    });
+  });
+}
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
+
+async function exportData(){
+  const name = 'vitalog-backup-' + today() + '.json';
+  const json = JSON.stringify(S, null, 1);
+  try {
+    if (navigator.canShare && window.File) {
+      const file = new File([json], name, { type: 'application/json' });
+      if (navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Vitalog backup' }); return; }
+    }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  try {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' })); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    toast('Backup saved to downloads');
+  } catch (e) {
+    try { await navigator.clipboard.writeText(json); toast('Backup copied to clipboard'); } catch (e2) { toast('Could not export on this browser.'); }
+  }
+}
+function importData(file){
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const p = JSON.parse(r.result);
+      if (!p || p.v !== 1 || !Array.isArray(p.entries)) throw new Error('bad');
+      if (!confirm('Replace everything on this phone with the backup (' + p.entries.length + ' entries, ' + (p.meds || []).length + ' medications)?')) return;
+      S = Object.assign(JSON.parse(JSON.stringify(DEFAULTS)), p);
+      S.settings = Object.assign({}, DEFAULTS.settings, p.settings || {});
+      save(); closeSheet(); render(); toast('Backup restored');
+    } catch (e) { toast('That file is not a Vitalog backup.'); }
+  };
+  r.readAsText(file);
+}
+
+/* ---------- demo data ---------- */
+function seedDemo(state){
+  const t = today();
+  const rnd = mulberry(7);
+  const ts = (k, h, m) => dayStart(k) + (h*60 + (m||0)) * 6e4;
+  const meds = [
+    { id:'demo-m1', name:'Vitamin D', dose:'1000 IU', times:['08:00'], notes:'With breakfast', active:true, demo:true },
+    { id:'demo-m2', name:'Lisinopril', dose:'10 mg', times:['08:00','20:00'], notes:'', active:true, demo:true },
+  ];
+  state.meds.push.apply(state.meds, meds);
+  let kg = 82.4;
+  for (let i = 27; i >= 0; i--) {
+    const k = addDays(t, -i);
+    const wd = new Date(dayStart(k)).getDay();
+    kg += (rnd() - 0.55) * 0.5;
+    if (rnd() < 0.85) state.entries.push({ id:uid(), type:'weight', ts:ts(k,7,10), kg:round(kg,1), note:'', demo:true });
+    const sys = Math.round(122 + (rnd()-0.5)*14 - i*0.15), dia = Math.round(79 + (rnd()-0.5)*10 - i*0.1);
+    if (rnd() < 0.8) state.entries.push({ id:uid(), type:'bp', ts:ts(k,7,20), sys, dia, pulse:Math.round(64 + rnd()*10), note:'', demo:true });
+    const hours = round(6 + rnd()*2.5 - (wd === 0 ? 0 : 0.3), 1);
+    state.entries.push({ id:uid(), type:'sleep', ts:ts(k,7,0), hours, quality: clamp(Math.round(hours/2 - 0.5 + rnd()), 1, 5), note:'', demo:true });
+    const glasses = 4 + Math.floor(rnd()*6);
+    for (let g = 0; g < glasses; g++) state.entries.push({ id:uid(), type:'water', ts:ts(k, 8 + g*1.6, 0), ml:250, note:'', demo:true });
+    if (rnd() < 0.5) state.entries.push({ id:uid(), type:'exercise', ts:ts(k,18,0), kind: ['Walk','Run','Strength','Cycle'][Math.floor(rnd()*4)], minutes: 20 + Math.floor(rnd()*40), intensity:['Light','Moderate','Hard'][Math.floor(rnd()*3)], note:'', demo:true });
+    if (rnd() < 0.7) state.entries.push({ id:uid(), type:'journal', ts:ts(k,21,30), mood: clamp(Math.round(2.5 + hours/4 + (rnd()-0.5)*2), 1, 5), energy: clamp(Math.round(2 + hours/3 + (rnd()-0.5)), 1, 5), pain: rnd() < 0.3 ? Math.floor(rnd()*5) : 0, symptoms: rnd() < 0.25 ? ['Headache'] : [], note: i === 3 ? 'Slept badly, long day at work.' : '', demo:true });
+    if (rnd() < 0.3) state.entries.push({ id:uid(), type:'hr', ts:ts(k,7,15), bpm: Math.round(60 + rnd()*12), ctx:'Resting', note:'', demo:true });
+    if (i > 0) {
+      const d = {};
+      meds.forEach(m => m.times.forEach(tm => { if (rnd() < 0.9) d[m.id + '|' + tm] = ts(k, +tm.slice(0,2), +tm.slice(3) + Math.floor(rnd()*20)); }));
+      state.doses[k] = d;
+    }
+  }
+  /* today: nothing taken yet, a few things logged */
+  state.entries = state.entries.filter(e => !(dayKey(e.ts) === t && (e.type === 'exercise' || e.type === 'journal')));
+  state.settings.demo = true;
+}
+function mulberry(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function clearDemo(){
+  S.entries = S.entries.filter(e => !e.demo);
+  const demoIds = new Set(S.meds.filter(m => m.demo).map(m => m.id));
+  S.meds = S.meds.filter(m => !m.demo);
+  Object.keys(S.doses).forEach(k => { Object.keys(S.doses[k]).forEach(dk => { if (demoIds.has(dk.split('|')[0])) delete S.doses[k][dk]; }); if (!Object.keys(S.doses[k]).length) delete S.doses[k]; });
+  S.settings.demo = false; save(); render(); toast('Example data cleared. It is all yours now.');
+}
+
+/* ---------- reminders ---------- */
+const notified = new Set();
+function checkReminders(){
+  if (!S.settings.notify || !('Notification' in window) || Notification.permission !== 'granted') return;
+  const t = today(), now = fmtTime(Date.now());
+  S.meds.filter(m => m.active !== false).forEach(m => (m.times || []).forEach(tm => {
+    const k = m.id + '|' + tm, nk = t + '|' + k;
+    if (tm > now || (S.doses[t] || {})[k] || notified.has(nk)) return;
+    /* only fire within 30 minutes of the scheduled time, so a late open doesn't dump a day's worth */
+    const mins = (+now.slice(0,2)*60 + +now.slice(3)) - (+tm.slice(0,2)*60 + +tm.slice(3));
+    if (mins > 30) { notified.add(nk); return; }
+    notified.add(nk);
+    try { new Notification('Time for ' + m.name, { body: (m.dose ? m.dose + ' · ' : '') + 'scheduled ' + tm, tag: nk }); } catch (e) {}
+  }));
+}
+setInterval(checkReminders, 30000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { render(); checkReminders(); } });
+
+/* ---------- events ---------- */
+function bindView(root){
+  bindCharts(root);
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act;
+  if (a === 'tab') { tab = b.dataset.tab; render(); window.scrollTo(0,0); }
+  else if (a === 'log') logForm(b.dataset.type);
+  else if (a === 'water') { S.entries.push({ id:uid(), type:'water', ts:Date.now(), ml:S.settings.glass, note:'' }); save(); render(); toast('+' + S.settings.glass + ' ml'); }
+  else if (a === 'dose') {
+    const t = today(); S.doses[t] = S.doses[t] || {};
+    if (S.doses[t][b.dataset.key]) delete S.doses[t][b.dataset.key]; else S.doses[t][b.dataset.key] = Date.now();
+    save(); render();
+  }
+  else if (a === 'del') { const e = S.entries.find(x => x.id === b.dataset.id); if (e && confirm('Delete this ' + TYPES[e.type].label.toLowerCase() + ' entry?')) { S.entries = S.entries.filter(x => x.id !== b.dataset.id); save(); render(); } }
+  else if (a === 'addMed') medForm(null);
+  else if (a === 'editMed') medForm(b.dataset.id);
+  else if (a === 'hfilter') { histFilter = b.dataset.f; render(); }
+  else if (a === 'range') { range = +b.dataset.n; render(); }
+  else if (a === 'clearDemo') clearDemo();
+});
+$$('.tab').forEach(b => b.addEventListener('click', () => { tab = b.dataset.tab; render(); window.scrollTo(0,0); }));
+$('#btnSettings').addEventListener('click', settingsSheet);
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeSheet(); });
+
+let toastT;
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2200); }
+
+/* ---------- offline ---------- */
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+
+render();
+checkReminders();
+})();
+</script>
+</body>
+</html>

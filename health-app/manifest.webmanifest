@@ -1,0 +1,16 @@
+{
+  "name": "Vitalog",
+  "short_name": "Vitalog",
+  "description": "A personal health logbook: medications, vitals, sleep, mood and water, kept privately on your phone.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3F6F4",
+  "theme_color": "#0F6E5C",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
