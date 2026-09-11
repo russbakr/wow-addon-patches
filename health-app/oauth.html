@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Vitalog · Oura connected</title>
+<style>
+body{margin:0;background:#F3F6F4;color:#14211C;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px 20px;line-height:1.5}
+.card{max-width:520px;margin:0 auto;background:#fff;border:1px solid #DCE4DF;border-radius:14px;padding:20px}
+h1{font-size:22px;margin:0 0 8px}p{margin:0 0 12px;font-size:15px}
+textarea{width:100%;box-sizing:border-box;min-height:70px;font-family:ui-monospace,monospace;font-size:13px;border:1px solid #DCE4DF;border-radius:10px;padding:10px;background:#F3F6F4}
+button{background:#0F6E5C;color:#fff;border:0;border-radius:10px;padding:12px 16px;font-size:15px;font-weight:600;width:100%;margin-top:10px}
+.muted{color:#4F5F58;font-size:13px}ol{padding-left:20px;font-size:14px}
+@media(prefers-color-scheme:dark){body{background:#0E1512;color:#EDF3EF}.card{background:#17201B;border-color:#2A362F}textarea{background:#0E1512;border-color:#2A362F;color:#EDF3EF}.muted{color:#B5C2BB}}
+</style></head><body><div class="card" id="c">
+<h1>Oura connected</h1>
+<p>Copy this token, then in Vitalog open <b>Sources → Oura → Paste token</b>. Vitalog's morning sync will use it for the next 30 days.</p>
+<textarea id="t" readonly></textarea>
+<button id="b">Copy token</button>
+<p class="muted" id="m"></p>
+</div>
+<script>
+(function(){
+  var h = location.hash.slice(1), q = {}; h.split('&').forEach(function(kv){ var p = kv.split('='); if (p[0]) q[decodeURIComponent(p[0])] = decodeURIComponent(p[1] || ''); });
+  var c = document.getElementById('c');
+  if (!q.access_token) { c.innerHTML = '<h1>No token here</h1><p>Open this page by finishing the Oura login from Vitalog\'s Sources tab. If Oura showed an error, the redirect address in your Oura application must be exactly this page\'s address:</p><textarea readonly>' + location.origin + location.pathname + '</textarea>'; return; }
+  var exp = new Date(Date.now() + (parseInt(q.expires_in || '2592000', 10) * 1000));
+  document.getElementById('t').value = q.access_token + '|' + exp.toISOString().slice(0,10);
+  document.getElementById('m').textContent = 'Expires ' + exp.toDateString() + '. Come back to Vitalog and repeat the login after that.';
+  document.getElementById('b').onclick = function(){ navigator.clipboard.writeText(document.getElementById('t').value).then(function(){ document.getElementById('b').textContent = 'Copied'; }); };
+  history.replaceState(null, '', location.pathname);
+})();
+</script></body></html>

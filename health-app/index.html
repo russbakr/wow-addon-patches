@@ -527,6 +527,7 @@ const SOURCES = {
   myair: { name:'myAir',         color:'#0a5a8c' },
   manual:{ name:'Logged',        color:'#6b7f76' },
   demo:  { name:'Example',       color:'#8a968f' },
+  sync:  { name:'Synced',        color:'#0f6e5c' },
 };
 const METRICS = {
   sleepScore:   { label:'Sleep score',      unit:'',      dec:0, kind:'line', min:0, max:100 },
@@ -599,6 +600,8 @@ function manualDaily(){
 function metric(day, f){
   const m = manualDaily().get(day);
   if (m && m[f] != null) return { v: m[f], src: 'manual' };
+  const fd = cloud.feed && cloud.feed.daily && cloud.feed.daily[day];
+  if (fd && fd[f] != null) return { v: fd[f], src: (fd._s && fd._s[f]) || 'sync' };
   const d = S.daily[day];
   if (d && d[f] != null) return { v: d[f], src: (d._s && d._s[f]) || 'import' };
   return null;
@@ -1014,12 +1017,18 @@ function viewSources(){
   const state = kind => { const s = lastOf(kind); return s ? '<span class="state ok">Imported ' + fmtDayLong(dayKey(s.at)) + ' · ' + s.days + ' days</span>' : '<span class="state">Not connected yet</span>'; };
   const card = (kind, code, name, how, actions) => '<div class="source" data-kind="' + kind + '"><div class="head"><span class="logo" style="background:' + SOURCES[kind].color + '">' + code + '</span><div class="txt"><div class="name">' + esc(name) + '</div>' + state(kind) + '</div></div><div class="how">' + how + '</div><div class="act">' + actions + '</div></div>';
   const importBtn = '<button class="btn" data-act="pickFile">Import file</button>';
+  const cfg = cloud.config || {};
+  const ouraExp = cfg.ouraToken ? String(cfg.ouraToken).split('|')[1] || '' : '';
+  const ouraAuto = cloud.db ? '<div class="how" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><b>Automatic sync</b>: ' + (cfg.ouraToken ? 'connected' + (ouraExp ? ', token good until ' + esc(ouraExp) : '') + '. The morning routine pulls the last 14 days each day.' : 'connect once, then the morning routine pulls Oura by itself for 30 days at a time.') + '</div>' : '';
+  const ouraBtns = cloud.db ? '<button class="btn ghost" data-act="ouraConnect">' + (cfg.ouraToken ? 'Reconnect Oura' : 'Connect Oura') + '</button>' : '';
+  const feedAt = cloud.feed && cloud.feed.updatedAt ? 'Last automatic sync ' + fmtDayLong(dayKey(cloud.feed.updatedAt)) + ' ' + fmtTime(cloud.feed.updatedAt) + '.' : (cloud.db ? 'No automatic sync has run yet.' : '');
   let h = '<section class="block"><div class="block-head"><h2>Your apps</h2></div>';
+  if (feedAt) h += '<p class="hint" style="margin-bottom:8px"><span class="sync' + (cloud.feed && cloud.feed.updatedAt ? ' on' : '') + '"><i></i>' + esc(feedAt) + '</span>' + (cloud.feed && cloud.feed.log && cloud.feed.log.length ? ' ' + esc(cloud.feed.log[cloud.feed.log.length-1]) : '') + '</p>';
   h += '<p class="hint" style="margin-bottom:12px">None of these apps let another app read their data live without a server and a developer account, so Vitalog works from the export each one already offers. Do the export on a computer, then import the file here (or open this page on the computer and import there: it syncs to your phone).</p>';
-  h += card('oura', 'O', 'Oura', 'Sleep, readiness and activity scores, HRV, resting heart rate, sleep time, temperature and SpO₂.<ol><li>Go to <b>cloud.ouraring.com</b>, open <b>Trends</b>, pick a date range and metrics, then <b>Download Data</b> (CSV).</li><li>Or in the <b>Membership Hub</b> choose <b>Export data</b>: a ZIP arrives by email within about 10 days.</li><li>Import the CSV, JSON or ZIP here.</li></ol>', importBtn);
+  h += card('oura', 'O', 'Oura', 'Sleep, readiness and activity scores, HRV, resting heart rate, sleep time, temperature and SpO₂.<ol><li>Go to <b>cloud.ouraring.com</b>, open <b>Trends</b>, pick a date range and metrics, then <b>Download Data</b> (CSV).</li><li>Or in the <b>Membership Hub</b> choose <b>Export data</b>: a ZIP arrives by email within about 10 days.</li><li>Import the CSV, JSON or ZIP here.</li></ol>' + ouraAuto, importBtn + ouraBtns);
   h += card('mfp', 'MFP', 'MyFitnessPal', 'Calories, protein, carbs, fat, fiber, sugar, sodium, exercise and weight.<ol><li>On a computer, sign in at <b>myfitnesspal.com</b>.</li><li>Free accounts: <b>Settings → Privacy &amp; Security → Download your data</b>. A ZIP of CSV files arrives by email within 24 hours.</li><li>Premium: <b>Reports → Export data</b> for a chosen date range.</li><li>Import the ZIP or the CSV files here.</li></ol>', importBtn);
   h += card('hume', 'H', 'Hume', 'Hume has no export or public API. It syncs to Apple Health or Google Health Connect, so on an iPhone the Apple Health export below brings it in. Or log a weigh-in here in ten seconds.<ol><li>In Hume, turn on <b>Apple Health</b> (or <b>Health Connect</b>) syncing.</li><li>iPhone: import the Apple Health export below.</li><li>Any phone: tap <b>Log body composition</b> after a weigh-in.</li></ol>', '<button class="btn ghost" data-act="log" data-type="body">Log body composition</button>');
-  h += card('apple', '', 'Apple Health', 'One file that carries Oura, Hume, MyFitnessPal and anything else that syncs to Health. Steps, weight, body fat, HRV, resting heart rate, sleep, nutrition, SpO₂ and more, each tagged with the app it came from.<ol><li>Open the <b>Health</b> app, tap your picture, then <b>Export All Health Data</b>.</li><li>Save the <b>export.zip</b> (AirDrop, Files or iCloud) and import it here, ideally on a computer: the file can be large.</li></ol>', importBtn);
+  h += card('apple', '', 'Apple Health', 'One file that carries Oura, Hume, MyFitnessPal and anything else that syncs to Health. Steps, weight, body fat, HRV, resting heart rate, sleep, nutrition, SpO₂ and more, each tagged with the app it came from.<ol><li>Open the <b>Health</b> app, tap your picture, then <b>Export All Health Data</b>.</li><li>Save the <b>export.zip</b> (AirDrop, Files or iCloud) and import it here, ideally on a computer: the file can be large.</li></ol>' + (cloud.db ? '<div class="how" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><b>Automatic</b>: an iPhone Shortcut can e-mail yesterday\'s Health numbers to your own Gmail every morning, and the morning routine reads that mail. Setup is in the repository\'s automation guide.</div>' : ''), importBtn);
   h += card('myair', 'Air', 'myAir (ResMed)', 'myAir has no export and no public API. Its nightly numbers take ten seconds to copy in: score, hours used, AHI and leak.<ol><li>Open myAir after waking; it shows last night\'s score and the four parts.</li><li>Tap <b>Log last night</b> and type them in.</li></ol>', '<button class="btn ghost" data-act="log" data-type="cpap">Log last night</button>');
   h += '</section>';
   h += '<div id="importOut"></div>';
@@ -1047,10 +1056,11 @@ function viewGuide(){
     h += '<p class="hint" style="margin-top:10px">Claude reads only the numbers in this app plus your "About me" note from Settings. It is a coach, not a doctor: anything urgent it will tell you to raise with a clinician.</p>';
   }
   h += '<div id="guideLive"></div>';
-  if (S.guidance.length) {
+  const all = S.guidance.map(g => Object.assign({ mine: true }, g)).concat(((cloud.feed && cloud.feed.guidance) || []).map(g => Object.assign({ mine: false }, g)));
+  if (all.length) {
     h += '<div class="block-head" style="margin-top:22px"><h2>Past guidance</h2></div><div class="guide-hist">';
-    S.guidance.slice().sort((a,b) => b.ts - a.ts).slice(0, 30).forEach((g, i) => {
-      h += '<details' + (i === 0 && !guideBusy ? ' open' : '') + '><summary>' + (g.kind === 'weekly' ? 'Weekly review' : 'Daily guidance') + ' · ' + esc(fmtDayLong(dayKey(g.ts))) + ' ' + fmtTime(g.ts) + '</summary><div class="guide-out">' + mdToHtml(g.text) + '<div class="meta" style="margin-top:8px"><span></span><button class="linkbtn danger" data-act="delGuide" data-id="' + esc(g.id) + '">Delete</button></div></div></details>';
+    all.sort((a,b) => b.ts - a.ts).slice(0, 30).forEach((g, i) => {
+      h += '<details' + (i === 0 && !guideBusy ? ' open' : '') + '><summary>' + (g.kind === 'weekly' ? 'Weekly review' : g.kind === 'morning' ? 'Morning brief' : 'Daily guidance') + ' · ' + esc(fmtDayLong(dayKey(g.ts))) + ' ' + fmtTime(g.ts) + (g.mine ? '' : ' · <span class="src">auto</span>') + '</summary><div class="guide-out">' + mdToHtml(g.text) + (g.mine ? '<div class="meta" style="margin-top:8px"><span></span><button class="linkbtn danger" data-act="delGuide" data-id="' + esc(g.id) + '">Delete</button></div>' : '') + '</div></details>';
     });
     h += '</div>';
   }
@@ -1266,6 +1276,35 @@ function medForm(id){
       if (!confirm('Delete ' + m.name + '? Past taken doses stay in your history.')) return;
       S.meds = S.meds.filter(x => x.id !== m.id); save(); closeSheet(); render(); toast('Deleted');
     });
+  });
+}
+
+/* ---------- Oura connect (token pasted from oauth.html) ---------- */
+function ouraSheet(){
+  const cfg = cloud.config || {};
+  let f = '<p class="hint">One-time setup, on any browser:</p><ol class="hint" style="padding-left:20px;margin:8px 0">' +
+    '<li>Sign in at <b>cloud.ouraring.com/oauth/applications</b> and create an application. Any name. Redirect URI: the address of your Vitalog <b>oauth.html</b> page (see the automation guide). Copy the <b>Client ID</b>.</li>' +
+    '<li>Paste the Client ID and the redirect address below and tap <b>Open Oura login</b>. Approve. Oura sends you back to oauth.html, which shows a token.</li>' +
+    '<li>Paste that token here and save. Repeat in 30 days when it expires.</li></ol>' +
+    '<div class="field"><label for="o_client">Oura Client ID</label><input type="text" id="o_client" autocomplete="off" value="' + esc(cfg.ouraClientId || '') + '" placeholder="From cloud.ouraring.com/oauth/applications"></div>' +
+    '<div class="field"><label for="o_redirect">Redirect address (your oauth.html)</label><input type="text" id="o_redirect" autocomplete="off" value="' + esc(cfg.ouraRedirect || '') + '" placeholder="https://YOURNAME.github.io/REPO/oauth.html"></div>' +
+    '<button class="secondary" id="o_open" style="margin-top:12px">Open Oura login</button>' +
+    '<div class="field"><label for="o_token">Token from oauth.html</label><textarea id="o_token" placeholder="Paste the whole token"></textarea></div>' +
+    '<button class="primary" id="o_save">Save token</button>' + (cfg.ouraToken ? '<button class="secondary danger" id="o_del">Disconnect Oura</button>' : '');
+  openSheet('Connect Oura', f, root => {
+    const saveCfg = async patch => { try { await cloud.db.doc('vitalog/config').set(Object.assign({}, cloud.config || {}, patch)); cloud.config = Object.assign({}, cloud.config || {}, patch); return true; } catch (e) { toast('Could not save. Open Vitalog through your Claude link.'); return false; } };
+    $('#o_open').addEventListener('click', async () => {
+      const id = $('#o_client').value.trim(), red = $('#o_redirect').value.trim();
+      if (!id || !red) return toast('Enter the Client ID and redirect address first.');
+      await saveCfg({ ouraClientId: id, ouraRedirect: red });
+      window.open('https://cloud.ouraring.com/oauth/authorize?response_type=token&client_id=' + encodeURIComponent(id) + '&redirect_uri=' + encodeURIComponent(red) + '&scope=' + encodeURIComponent('daily heartrate personal spo2 workout session'), '_blank');
+    });
+    $('#o_save').addEventListener('click', async () => {
+      const tok = $('#o_token').value.trim();
+      if (tok.length < 20) return toast('That does not look like a token.');
+      if (await saveCfg({ ouraToken: tok, ouraSavedAt: Date.now(), emailBrief: cloud.config && cloud.config.emailBrief != null ? cloud.config.emailBrief : true })) { closeSheet(); render(); toast('Oura connected'); }
+    });
+    const del = $('#o_del'); if (del) del.addEventListener('click', async () => { if (await saveCfg({ ouraToken: '', ouraSavedAt: 0 })) { closeSheet(); render(); toast('Oura disconnected'); } });
   });
 }
 
@@ -1635,7 +1674,7 @@ function dropSource(kind){
 $('#fileIn').addEventListener('change', ev => { const fs = Array.from(ev.target.files || []); if (fs.length) importFiles(fs); });
 
 /* ---------- cloud (claude.ai artifact runtime): sync, guidance, downloads ---------- */
-const cloud = { on: false, db: null, sample: undefined, downloads: null, saving: false };
+const cloud = { on: false, db: null, sample: undefined, downloads: null, saving: false, feed: null, config: null };
 const DOC = 'vitalog/state';
 async function cloudInit(){
   if (!window.claude || typeof window.claude.use !== 'function') { cloud.sample = null; return; }
@@ -1652,6 +1691,11 @@ async function cloudInit(){
           try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
         } else if (!remote || (S.savedAt || 0) > (remote.savedAt || 0)) { cloudSave(); }
         cloud.on = true;
+        const feedRef = db.doc('vitalog/feed'), cfgRef = db.doc('vitalog/config');
+        try { const fs = await feedRef.get(); cloud.feed = fs && fs.exists ? fs.data() : null; } catch (e) {}
+        try { const cs = await cfgRef.get(); cloud.config = cs && cs.exists ? cs.data() : null; } catch (e) {}
+        feedRef.onSnapshot(s => { cloud.feed = s && s.exists ? s.data() : null; render(); }, () => {});
+        cfgRef.onSnapshot(s => { cloud.config = s && s.exists ? s.data() : null; render(); }, () => {});
         db.doc(DOC).onSnapshot(s => {
           const r = s && s.exists ? s.data() : null;
           if (r && r.v === 1 && (r.savedAt || 0) > (S.savedAt || 0) && !cloud.saving) { S = normalize(JSON.parse(JSON.stringify(r))); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} render(); }
@@ -1778,6 +1822,7 @@ document.addEventListener('click', ev => {
   else if (a === 'pickFile') $('#fileIn').click();
   else if (a === 'dropSource') { if (confirm('Remove every value imported from ' + SOURCES[b.dataset.kind].name + '? Entries you typed in stay.')) dropSource(b.dataset.kind); }
   else if (a === 'guide') askGuide(b.dataset.kind);
+  else if (a === 'ouraConnect') ouraSheet();
   else if (a === 'delGuide') { S.guidance = S.guidance.filter(g => g.id !== b.dataset.id); save(); render(); }
   else if (a === 'copySummary') { const txt = buildPrompt('daily'); navigator.clipboard.writeText(txt).then(() => toast('Summary copied. Paste it into Claude.'), () => toast('Could not copy on this browser.')); }
 });
